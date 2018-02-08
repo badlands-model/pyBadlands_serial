@@ -118,7 +118,7 @@ def construct_mesh(input, filename, verbose=False):
 
     # Wavesed grid initialisation
     if input.waveSed:
-        wave = _init_wavesed(input, recGrid, force, verbose)
+        wave = _init_wavesed(input,elevation[0], recGrid, force, verbose)
         wave.build_tree(FVmesh.node_coords[:,:2])
 
     # Stratigraphic TIN initialisation
@@ -368,7 +368,7 @@ def _init_flexure(FVmesh, input, recGrid, force, elevation, cumdiff,
                 elasticT, elasticT2, input.flexbounds, FVmesh.node_coords[:,:2], input.ftime)
 
     tinFlex = np.zeros(totPts, dtype=float)
-    force.getSea(input.tStart)
+    force.getSea(input.tStart,input.udw,elevation[0])
     tinFlex = flex.get_flexure(elevation, cumdiff, force.sealevel,
                                recGrid.boundsPt, initFlex=True)
     tinFlex = force.disp_border(tinFlex, FVmesh.neighbours, FVmesh.edge_length, recGrid.boundsPt)
@@ -378,7 +378,7 @@ def _init_flexure(FVmesh, input, recGrid, force, elevation, cumdiff,
 
     return flex, tinFlex, cumflex
 
-def _init_wavesed(input, recGrid, force, verbose=False):
+def _init_wavesed(input, z0,recGrid, force, verbose=False):
     """
     Initialise wavesed mesh.
     """
@@ -387,7 +387,7 @@ def _init_wavesed(input, recGrid, force, verbose=False):
     walltime = time.clock()
 
     wave = waveSed.waveSed(input, recGrid, Ce=input.wCe, Cd=50.)
-    force.getSea(input.tStart)
+    force.getSea(input.tStart,input.udw,z0)
 
     if verbose:
         print "   - Initialise wavesed grid ", time.clock() - walltime

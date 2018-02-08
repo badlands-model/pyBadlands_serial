@@ -25,7 +25,7 @@ def streamflow(input, FVmesh, recGrid, force, hillslope, flow, elevation, \
 
     # Update sea-level
     walltime = time.clock()
-    force.getSea(tNow)
+    force.getSea(tNow,input.udw,elevation[0])
     fillH = None
 
     # Update river input
