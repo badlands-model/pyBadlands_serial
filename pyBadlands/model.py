@@ -45,7 +45,6 @@ class Model(object):
             When True, output additional debug information.
         """
 
-        print 'hello'
         np.seterr(divide='ignore',invalid='ignore')
 
         # Only the first node should create a unique output dir

@@ -188,7 +188,7 @@ def _write_xdmf(folder, xdmffile, xmffile, step):
     f.write('</Xdmf>\n')
     f.close()
 
-def write_xmf(folder, xmffile, xdmffile, step, time, elems, nodes, h5file, size):
+def write_xmf(folder, xmffile, xdmffile, step, time, elems, nodes, h5file):
     """
     This function writes the XmF file which is calling each HFD5 file.
 
@@ -215,9 +215,6 @@ def write_xmf(folder, xmffile, xdmffile, step, time, elems, nodes, h5file, size)
 
     h5file
         First part of the hdf5 file name.
-
-    size
-        Number of partitions.
     """
 
     xmf_file = folder+'/'+xmffile+str(step)+'.xmf'

@@ -582,7 +582,7 @@ class flowNetwork:
         # Compute sediment flux using libUtils
         # Stream power law
         if self.spl:
-            if rank==0 and verbose:
+            if verbose:
                 time0 = time.clock()
                 time1 = time.clock()
 

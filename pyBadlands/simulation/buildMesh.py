@@ -63,7 +63,7 @@ def construct_mesh(input, filename, verbose=False):
     FVmesh.partIDs = partitionIDs
 
     # Get each partition global node ID
-    inGIDs = np.where(partitionIDs == rank)[0]
+    inGIDs = np.where(partitionIDs == 0)[0]
 
     # Build Finite Volume discretisation
     # Define overlapping partitions
