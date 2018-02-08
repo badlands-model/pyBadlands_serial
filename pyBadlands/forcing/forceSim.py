@@ -222,7 +222,7 @@ class forceSim:
         self.seaval = seadata.values[:,1]
         self.seaFunc = interpolate.interp1d(self.seatime, self.seaval, kind='linear')
 
-    def getSea(self, time, z0):
+    def getSea(self, time):
         """
         Computes for a given time the sea level according to input file parameters.
 
@@ -233,13 +233,13 @@ class forceSim:
         """
 
         if self.seafile == None:
-            self.sealevel = z0 + self.sea0
+            self.sealevel = self.sea0
         else:
             if time < self.seatime.min():
                 time = self.seatime.min()
             if time > self.seatime.max():
                 time = self.seatime.max()
-            self.sealevel = z0 + self.seaFunc(time)
+            self.sealevel = self.seaFunc(time)
 
         return
 

@@ -63,7 +63,7 @@ def construct_mesh(input, filename, verbose=False):
     FVmesh.partIDs = partitionIDs
 
     # Get each partition global node ID
-    inGIDs = np.where(partitionIDs == 0)[0]
+    inGIDs = np.where(partitionIDs == rank)[0]
 
     # Build Finite Volume discretisation
     # Define overlapping partitions
@@ -118,7 +118,7 @@ def construct_mesh(input, filename, verbose=False):
 
     # Wavesed grid initialisation
     if input.waveSed:
-        wave = _init_wavesed(elevation[0], input, recGrid, force, verbose)
+        wave = _init_wavesed(input, recGrid, force, verbose)
         wave.build_tree(FVmesh.node_coords[:,:2])
 
     # Stratigraphic TIN initialisation
@@ -350,21 +350,25 @@ def _init_flexure(FVmesh, input, recGrid, force, elevation, cumdiff,
 
     nx = input.fnx
     ny = input.fny
+    elasticT2 = None
     if nx == 0:
         nx = recGrid.nx
     if ny == 0:
         ny = recGrid.ny
-    if input.elasticH is None:
+    if input.elasticH is not None:
+        elasticT = input.elasticH
+    elif input.elasticGrid is not None:
         elasticT = str(input.elasticGrid)
     else:
-        elasticT = input.elasticH
+        elasticT = input.elasticA1
+        elasticT2 = input.elasticA2
 
     flex = isoFlex.isoFlex()
     flex.buildGrid(nx, ny, input.youngMod, input.dmantle, input.dsediment,
-                elasticT, input.flexbounds, FVmesh.node_coords[:,:2])
+                elasticT, elasticT2, input.flexbounds, FVmesh.node_coords[:,:2], input.ftime)
 
     tinFlex = np.zeros(totPts, dtype=float)
-    force.getSea(input.tStart, elevation[0])
+    force.getSea(input.tStart)
     tinFlex = flex.get_flexure(elevation, cumdiff, force.sealevel,
                                recGrid.boundsPt, initFlex=True)
     tinFlex = force.disp_border(tinFlex, FVmesh.neighbours, FVmesh.edge_length, recGrid.boundsPt)
@@ -374,7 +378,7 @@ def _init_flexure(FVmesh, input, recGrid, force, elevation, cumdiff,
 
     return flex, tinFlex, cumflex
 
-def _init_wavesed(input, z0, recGrid, force, verbose=False):
+def _init_wavesed(input, recGrid, force, verbose=False):
     """
     Initialise wavesed mesh.
     """
@@ -383,7 +387,7 @@ def _init_wavesed(input, z0, recGrid, force, verbose=False):
     walltime = time.clock()
 
     wave = waveSed.waveSed(input, recGrid, Ce=input.wCe, Cd=50.)
-    force.getSea(input.tStart, z0)
+    force.getSea(input.tStart)
 
     if verbose:
         print "   - Initialise wavesed grid ", time.clock() - walltime

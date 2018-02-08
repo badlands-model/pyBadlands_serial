@@ -416,8 +416,6 @@ class flowNetwork:
         self.discharge, self.activelay = FLOWalgo.flowcompute.discharge(self.localstack, self.receivers,
                                                         elev, self.discharge)
 
-        return
-
     def view_receivers(self, fillH, elev, neighbours, edges, distances, globalIDs, sea):
         """
         Single Flow Direction function computes downslope flow directions by inspecting the neighborhood
@@ -584,7 +582,7 @@ class flowNetwork:
         # Compute sediment flux using libUtils
         # Stream power law
         if self.spl:
-            if verbose:
+            if rank==0 and verbose:
                 time0 = time.clock()
                 time1 = time.clock()
 

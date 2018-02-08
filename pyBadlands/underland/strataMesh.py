@@ -14,6 +14,7 @@ import glob
 import time
 import h5py
 import numpy
+import mpi4py.MPI as mpi
 from scipy import interpolate
 from scipy.spatial import cKDTree
 from scipy.interpolate import RegularGridInterpolator
@@ -76,6 +77,11 @@ class strataMesh():
             Restart step.
         """
 
+        # Initialise MPI communications
+        comm = mpi.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+
         self.ids = None
         self.ptsNb = None
         self.oldload = None
@@ -111,10 +117,10 @@ class strataMesh():
             else:
                 raise ValueError('The restart folder is missing or the given path is incorrect.')
 
-            if restartncpus != 1:
+            if restartncpus != size:
                 raise ValueError('When using the stratal model you need to run the restart simulation with the same number of processors as the previous one.')
 
-            df = h5py.File('%s/h5/sed.time%s.p0.hdf5'%(rfolder, rstep), 'r')
+            df = h5py.File('%s/h5/sed.time%s.p%s.hdf5'%(rfolder, rstep, rank), 'r')
             layDepth = numpy.array((df['/layDepth']))
             layElev = numpy.array((df['/layElev']))
             layThick = numpy.array((df['/layThick']))
@@ -180,6 +186,11 @@ class strataMesh():
             Numpy float-type array containing the cumulative erosion/deposition of the nodes in the TIN
         """
 
+        # Initialise MPI communications
+        comm = mpi.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+
         # Move coordinates
         walltime = time.clock()
         st_time = walltime
@@ -194,25 +205,102 @@ class strataMesh():
         u0 = u1 - self.nx
         shape = (l1-l0, self.step+1)
 
-        if verbose:
+        if rank == 0 and verbose:
             print " - move stratal mesh ", time.clock() - walltime
 
-        walltime = time.clock()
-        deformXY = moveXY
-        deformThick = self.stratThick[:,:self.step+1]
-        deformElev = self.stratElev[:,:self.step+1]
-        if verbose:
-            print " - create deformed stratal mesh arrays ", time.clock() - walltime
+        # Parallel calls
+        if size > 1:
+            walltime = time.clock()
+            if rank == 0:
+                # Send upper row to next processor
+                uData1 = self.stratThick[u0:u1,:self.step+1].ravel()
+                uData2 = self.stratElev[u0:u1,:self.step+1].ravel()
+                comm.Send(uData1, dest=rank+1, tag=rank)
+                comm.Send(uData2, dest=rank+1, tag=rank+2000)
+                # Receive upper ghost row from next processor
+                comm.Recv(guData1, source=rank+1, tag=rank+1)
+                comm.Recv(guData2, source=rank+1, tag=rank+2001)
+                guData1.reshape(shape)
+                guData2.reshape(shape)
+
+            elif rank == size-1:
+                # Send lower row to previous processor
+                lData1 = self.stratThick[l0:l1,:self.step+1].ravel()
+                lData2 = self.stratElev[l0:l1,:self.step+1].ravel()
+                comm.Send(lData1, dest=rank-1, tag=rank)
+                comm.Send(lData2, dest=rank-1, tag=rank+2000)
+                # Receive lower ghost row from previous processor
+                comm.Recv(glData1, source=rank-1, tag=rank-1)
+                comm.Recv(glData2, source=rank-1, tag=rank+1999)
+                glData1.reshape(shape)
+                glData2.reshape(shape)
+
+            else:
+                # Send lower row to previous processor
+                lData1 = self.stratThick[l0:l1,:self.step+1].ravel()
+                lData2 = self.stratElev[l0:l1,:self.step+1].ravel()
+                comm.Send(lData1, dest=rank-1, tag=rank)
+                comm.Send(lData2, dest=rank-1, tag=rank+2000)
+                # Receive lower ghost row from previous processor
+                comm.Recv(glData1, source=rank-1, tag=rank-1)
+                comm.Recv(glData2, source=rank-1, tag=rank+1999)
+                glData1.reshape(shape)
+                glData2.reshape(shape)
+                # Send upper row to next processor
+                uData1 = self.stratThick[u0:u1,:self.step+1].ravel()
+                uData2 = self.stratElev[u0:u1,:self.step+1].ravel()
+                comm.Send(uData1, dest=rank+1, tag=rank)
+                comm.Send(uData2, dest=rank+1, tag=rank+2000)
+                # Receive upper ghost row from next processor
+                comm.Recv(guData1, source=rank+1, tag=rank+1)
+                comm.Recv(guData2, source=rank+1, tag=rank+2001)
+                guData1.reshape(shape)
+                guData2.reshape(shape)
+
+        # Build deformed mesh
+        # Parallel model
+        if size > 1:
+            u0 = self.upper[rank,0]
+            u1 = self.upper[rank,1]
+            l0 = self.lower[rank,0]
+            l1 = self.lower[rank,1]
+            if rank == 0:
+                deformXY = numpy.concatenate((moveXY[self.ids,:], moveXY[u0:u1,:]), axis=0)
+                deformThick = numpy.concatenate((self.stratThick[:,:self.step+1], guData1), axis=0)
+                deformElev = numpy.concatenate((self.stratElev[:,:self.step+1], guData2), axis=0)
+            elif rank == size-1:
+                deformXY = numpy.concatenate((moveXY[self.ids,:], moveXY[l0:l1,:]), axis=0)
+                deformThick = numpy.concatenate((self.stratThick[:,:self.step+1], glData1), axis=0)
+                deformElev = numpy.concatenate((self.stratElev[:,:self.step+1], glData2), axis=0)
+            else:
+                deformXY = numpy.concatenate((moveXY[self.ids,:], moveXY[l0:l1,:]), axis=0)
+                deformXY = numpy.concatenate((deformXY, moveXY[u0:u1,:]), axis=0)
+                deformThick = numpy.concatenate((self.stratThick[:,:self.step+1], glData1), axis=0)
+                deformElev = numpy.concatenate((self.stratElev[:,:self.step+1], glData2), axis=0)
+                deformThick = numpy.concatenate((deformThick, guData1), axis=0)
+                deformElev = numpy.concatenate((deformElev, guData2), axis=0)
+
+            if rank == 0 and verbose:
+                print " - send/receive communication stratal mesh ", time.clock() - walltime
+
+        # Serial model
+        else:
+            walltime = time.clock()
+            deformXY = moveXY
+            deformThick = self.stratThick[:,:self.step+1]
+            deformElev = self.stratElev[:,:self.step+1]
+            if rank == 0 and verbose:
+                print " - create deformed stratal mesh arrays ", time.clock() - walltime
 
         # Build the kd-tree
         walltime = time.clock()
         deformtree = cKDTree(deformXY)
-        if verbose:
+        if rank == 0 and verbose:
             print " - create deformed stratal mesh kd-tree ", time.clock() - walltime
 
         walltime = time.clock()
         distances, indices = deformtree.query(self.xyi, k=4)
-        if verbose:
+        if rank == 0 and verbose:
             print " - query stratal mesh kd-tree ", time.clock() - walltime
 
         # Compute inverse weighting distance
@@ -242,15 +330,15 @@ class strataMesh():
         self.stratIn.fill(0)
         tmpID = numpy.where(numpy.amax(self.stratThick[:,:self.step+1], axis=1)>0)[0]
         self.stratIn[tmpID] = 1
-        if verbose:
+        if rank == 0 and verbose:
             print " - perform stratal mesh interpolation ", time.clock() - walltime
 
-        if verbose:
+        if rank == 0 and verbose:
             print " - moving stratal mesh function ", time.clock() - st_time
 
         self.oldload = numpy.copy(cumdiff)
 
-    def buildStrata(self, elev, cumdiff, sea, write=0, outstep=0):
+    def buildStrata(self, elev, cumdiff, sea, rank, write=0, outstep=0):
         """
         Build the stratigraphic layer on the regular grid.
 
@@ -264,6 +352,9 @@ class strataMesh():
 
         sea
             Sea level elevation
+
+        rank
+            Rank of the given processor
 
         write
             Flag for output generation
@@ -311,7 +402,7 @@ class strataMesh():
 
         if write>0:
             self.layerMesh(selev[self.ids])
-            self.write_hdf5_stratal(outstep)
+            self.write_hdf5_stratal(outstep,rank)
 
         self.step += 1
 
@@ -322,13 +413,17 @@ class strataMesh():
         Define a partition for the stratal mesh.
         """
 
-        size = 1
+        # Initialise MPI communications
+        comm = mpi.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+
         # extent of X partition
-        Yst = numpy.zeros( 1 )
-        Yed = numpy.zeros( 1 )
-        partYID = numpy.zeros( (1,2) )
-        nbY = int((self.ny-1) / 1)
-        for p in range(1):
+        Yst = numpy.zeros( size )
+        Yed = numpy.zeros( size )
+        partYID = numpy.zeros( (size,2) )
+        nbY = int((self.ny-1) / size)
+        for p in range(size):
             if p == 0:
                 Yst[p] = bbY[0]
                 Yed[p] = Yst[p] + nbY*self.dx
@@ -343,23 +438,23 @@ class strataMesh():
         partYID[size-1,1] = self.ny*self.nx
 
         # Get send/receive data ids for each processors
-        self.upper = numpy.zeros( (1,2) )
-        self.lower = numpy.zeros( (1,2) )
-        self.upper[0,0] = partYID[0,1]
-        self.upper[0,1] = partYID[0,1] + self.nx
-        self.lower[0,0] = partYID[0,0]
-        self.lower[0,1] = partYID[0,0] - self.nx
+        self.upper = numpy.zeros( (size,2) )
+        self.lower = numpy.zeros( (size,2) )
+        self.upper[rank,0] = partYID[rank,1]
+        self.upper[rank,1] = partYID[rank,1] + self.nx
+        self.lower[rank,0] = partYID[rank,0]
+        self.lower[rank,1] = partYID[rank,0] - self.nx
 
         # Define partitions ID globally
-        Xst = numpy.zeros( 1 )
-        Xed = numpy.zeros( 1 )
+        Xst = numpy.zeros( size )
+        Xed = numpy.zeros( size )
         Xst += bbX[0]
         Xed += bbX[1]
 
         # Loop over node coordinates and find if they belong to local partition
         # Note: used a Cython/Fython class to increase search loop performance... in libUtils
-        partID = FASTloop.part.overlap(self.xyi[:,0],self.xyi[:,1],Xst[0],
-                                        Yst[0],Xed[0],Yed[0])
+        partID = FASTloop.part.overlap(self.xyi[:,0],self.xyi[:,1],Xst[rank],
+                                        Yst[rank],Xed[rank],Yed[rank])
 
         # Extract local domain nodes global ID
         self.ids = numpy.where(partID > -1)[0]
@@ -468,7 +563,7 @@ class strataMesh():
 
         return
 
-    def write_hdf5_stratal(self, outstep):
+    def write_hdf5_stratal(self, outstep, rank):
         """
         This function writes for each processor the HDF5 file containing sub-surface information.
 
@@ -476,9 +571,12 @@ class strataMesh():
         ----------
         outstep
             Output time step.
+
+        rank
+            ID of the local partition.
         """
 
-        sh5file = self.folder+'/'+self.h5file+str(outstep)+'.p0.hdf5'
+        sh5file = self.folder+'/'+self.h5file+str(outstep)+'.p'+str(rank)+'.hdf5'
         with h5py.File(sh5file, "w") as f:
             # Write node coordinates
             f.create_dataset('coords',shape=(self.ptsNb,2), dtype='float32', compression='gzip')

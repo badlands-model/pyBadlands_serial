@@ -109,10 +109,10 @@ class carbMesh():
             else:
                 raise ValueError('The restart folder is missing or the given path is incorrect.')
 
-            if restartncpus != 1:
+            if restartncpus != size:
                 raise ValueError('When using the stratal model you need to run the restart simulation with the same number of processors as the previous one.')
 
-            df = h5py.File('%s/h5/stratal.time%s.p0.hdf5'%(rfolder, rstep), 'r')
+            df = h5py.File('%s/h5/stratal.time%s.p%s.hdf5'%(rfolder, rstep, rank), 'r')
 
             paleoDepth = numpy.array((df['/paleoDepth']))
             eroLay =  paleoDepth.shape[1]

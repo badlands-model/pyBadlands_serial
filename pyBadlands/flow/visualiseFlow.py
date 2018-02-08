@@ -124,6 +124,9 @@ def write_hdf5(folder, h5file, step, coords, elevation, discharge, chi,
 
     connect
         Numpy 2D integer-type array containing the local nodes IDs for each connected network.
+
+    rank
+        ID of the local partition.
     """
 
     h5file = folder+'/'+h5file+str(step)+'.p0.hdf5'
@@ -185,7 +188,7 @@ def _write_xdmf(folder, xdmffile, xmffile, step):
     f.write('</Xdmf>\n')
     f.close()
 
-def write_xmf(folder, xmffile, xdmffile, step, time, elems, nodes, h5file):
+def write_xmf(folder, xmffile, xdmffile, step, time, elems, nodes, h5file, size):
     """
     This function writes the XmF file which is calling each HFD5 file.
 
