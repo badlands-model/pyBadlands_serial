@@ -249,7 +249,7 @@ class forceSim:
                     time = self.seatime.min()
                 if time > self.seatime.max():
                     time = self.seatime.max()
-            self.sealevel = z0 + self.seaFunc(time)
+                self.sealevel = z0 + self.seaFunc(time)
 
         return
 
