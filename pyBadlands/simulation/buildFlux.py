@@ -80,7 +80,7 @@ def streamflow(input, FVmesh, recGrid, force, hillslope, flow, elevation, \
 
     # Compute discharge
     walltime = time.clock()
-    flow.compute_flow(elevation, FVmesh.control_volumes, riverrain)
+    flow.compute_flow(force.sealevel, elevation, FVmesh.control_volumes, riverrain)
     if verbose:
         print " -   compute discharge ", time.clock() - walltime
 

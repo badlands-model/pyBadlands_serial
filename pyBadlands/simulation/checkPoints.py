@@ -23,6 +23,8 @@ def write_checkpoints(input, recGrid, lGIDs, inIDs, tNow, FVmesh, \
     Create the checkpoint files (used for HDF5 output).
     """
 
+    deepb = input.deepbasin
+
     if input.erolays >= 0:
         eroOn = True
     else:
@@ -54,11 +56,13 @@ def write_checkpoints(input, recGrid, lGIDs, inIDs, tNow, FVmesh, \
     fline[0] = len(polylines[:, 0])
 
     # Compute flow parameters
+    if deepb >= 5000.:
+        deepb = force.sealevel
     flow.view_receivers(fillH, elevation, FVmesh.neighbours, FVmesh.vor_edges,
-                        FVmesh.edge_length, lGIDs, force.sealevel)
+                        FVmesh.edge_length, lGIDs, deepb) #force.sealevel)
     flow.compute_parameters()
     visdis = np.copy(flow.discharge)
-    seaIDs = np.where(elevation<force.sealevel)[0]
+    seaIDs = np.where(elevation<deepb)[0] #force.sealevel)[0]
     if len(seaIDs)>0:
         visdis[seaIDs] = 1.
         flow.basinID[seaIDs] = -1
@@ -95,12 +99,21 @@ def write_checkpoints(input, recGrid, lGIDs, inIDs, tNow, FVmesh, \
                                 prop[lGIDs,:])
 
     if flow.sedload is not None:
-        visualiseFlow.write_hdf5(input.outDir, input.fh5file, step, FVmesh.node_coords[flowIDs, :2], elevation[flowIDs],
-                                 visdis[flowIDs], flow.chi[flowIDs], flow.sedload[flowIDs], flow.basinID[flowIDs], polylines)
+            if flow.flowdensity is not None:
+                visualiseFlow.write_hdf5(input.outDir, input.fh5file, step, FVmesh.node_coords[flowIDs, :2], elevation[flowIDs],
+                                     visdis[flowIDs], flow.chi[flowIDs], flow.sedload[flowIDs], flow.flowdensity[flowIDs], flow.basinID[flowIDs], polylines)
+            else:
+                zeros = np.zeros(len(flowIDs),dtype=float)
+                visualiseFlow.write_hdf5(input.outDir, input.fh5file, step, FVmesh.node_coords[flowIDs, :2], elevation[flowIDs],
+                                     visdis[flowIDs], flow.chi[flowIDs], flow.sedload[flowIDs], zeros, flow.basinID[flowIDs], polylines)
     else:
         zeros = np.zeros(len(flowIDs),dtype=float)
-        visualiseFlow.write_hdf5(input.outDir, input.fh5file, step, FVmesh.node_coords[flowIDs, :2], elevation[flowIDs],
-                                 visdis[flowIDs], flow.chi[flowIDs], zeros, flow.basinID[flowIDs], polylines)
+        if flow.flowdensity is not None:
+            visualiseFlow.write_hdf5(input.outDir, input.fh5file, step, FVmesh.node_coords[flowIDs, :2], elevation[flowIDs],
+                                 visdis[flowIDs], flow.chi[flowIDs], zeros, flow.flowdensity[flowIDs], flow.basinID[flowIDs], polylines)
+        else:
+            visualiseFlow.write_hdf5(input.outDir, input.fh5file, step, FVmesh.node_coords[flowIDs, :2], elevation[flowIDs],
+                                 visdis[flowIDs], flow.chi[flowIDs], zeros, zeros, flow.basinID[flowIDs], polylines)
 
     # Combine HDF5 files and write time series
     visualiseTIN.write_xmf(input.outDir, input.txmffile, input.txdmffile, step, tNow, tcells,

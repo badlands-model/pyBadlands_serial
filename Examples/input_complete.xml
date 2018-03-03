@@ -50,6 +50,10 @@
         <stratdx>500.</stratdx>
         <!-- Stratal layer interval [a] -->
         <laytime>2500.</laytime>
+        <!-- Surface porosity  -->
+        <poro0>0.52</poro0>
+        <!-- characteristic constant for Athy's porosity law  [/km] -->
+        <poroC>0.47</poroC>
     </strata>
 
     <!-- Sea-level structure -->
@@ -233,6 +237,12 @@
         <!-- Proportion of marine sediment deposited on downstream nodes. It needs
              to be set between ]0,1[. Default value is 0.9 (optional). -->
         <diffprop>0.2</diffprop>
+        <!-- Critical density of water+sediment flux to trigger hyperpycnal current
+             off shore - (optional) -->
+        <dens_cr>1060.</dens_cr>
+        <!-- Deep basin depth under which hyperpycnal flow are forced to
+             deposit [m] - (optional) -->
+        <deepbasin>-2500.</deepbasin>
     </sp_law>
 
     <!-- Flux-dependent function structure  (optional)

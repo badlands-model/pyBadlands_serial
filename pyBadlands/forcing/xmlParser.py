@@ -46,6 +46,8 @@ class xmlParser:
         self.Afactor = 1
         self.nopit = 0
         self.udw = 0
+        self.poro0 = 0.52
+        self.poroC = 0.47
 
         self.restart = False
         self.rForlder = None
@@ -104,6 +106,8 @@ class xmlParser:
         self.diffnb = 5
         self.diffprop = 0.9
         self.spl = False
+        self.deepbasin = 10000.
+        self.denscrit = 20000.
 
         self.incisiontype = 0
         self.mp = 0.
@@ -347,6 +351,14 @@ class xmlParser:
                 self.stratdx = float(element.text)
             else:
                 self.stratdx = 0.
+            element = None
+            element = strat.find('poroC')
+            if element is not None:
+                self.poroC = float(element.text)
+            element = None
+            element = strat.find('poro0')
+            if element is not None:
+                self.poro0 = float(element.text)
             element = None
             element = strat.find('laytime')
             if element is not None:
@@ -926,6 +938,14 @@ class xmlParser:
                 self.diffnb = int(element.text)
             else:
                 self.diffnb = 5
+            element = None
+            element = spl.find('dens_cr')
+            if element is not None:
+                self.denscrit = float(element.text)
+            element = None
+            element = sea.find('deepbasin')
+            if element is not None:
+                self.deepbasin = float(element.text)
             element = None
             element = spl.find('diffprop')
             if element is not None:

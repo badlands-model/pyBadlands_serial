@@ -94,6 +94,9 @@ class flowNetwork:
         self.kt = input.kt
         self.kw = input.kw
         self.b = input.b
+        self.deepb = input.deepbasin
+        self.critdens = input.denscrit
+        self.flowdensity = None
         self.sedload = None
         self.straTIN = 0
         self.activelay = None
@@ -391,7 +394,7 @@ class flowNetwork:
         stids = numpy.where(lstcks > -1 )[0]
         self.localstack1 = lstcks[stids]
 
-    def compute_flow(self, elev, Acell, rain):
+    def compute_flow(self, sealevel, elev, Acell, rain):
         """
         Calculates the drainage area and water discharge at each node.
 
@@ -413,7 +416,7 @@ class flowNetwork:
         self.discharge[self.stack] = Acell[self.stack] * rain[self.stack]
 
         # Compute discharge using libUtils
-        self.discharge, self.activelay = FLOWalgo.flowcompute.discharge(self.localstack, self.receivers,
+        self.discharge, self.activelay = FLOWalgo.flowcompute.discharge(sealevel, self.localstack, self.receivers,
                                                         elev, self.discharge)
 
     def view_receivers(self, fillH, elev, neighbours, edges, distances, globalIDs, sea):
@@ -602,7 +605,7 @@ class flowNetwork:
             if actlay is None:
                 actlay = numpy.zeros((len(elev),1))
 
-            cdepo, cero, sedload = FLOWalgo.flowcompute.streampower(self.localstack,self.receivers,self.pitID, \
+            cdepo, cero, sedload, flowdensity = FLOWalgo.flowcompute.streampower(self.critdens, self.localstack,self.receivers,self.pitID, \
                      self.pitVolume,self.pitDrain,self.xycoords,Acell,self.maxh,self.maxdep,self.discharge,fillH, \
                      elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,newdt,self.borders)
 
@@ -640,7 +643,7 @@ class flowNetwork:
                 time1 = time.clock()
 
             if newdt < dt:
-                cdepo, cero, sedload = FLOWalgo.flowcompute.streampower(self.localstack,self.receivers,self.pitID, \
+                cdepo, cero, sedload, flowdensity = FLOWalgo.flowcompute.streampower(self.critdens, self.localstack,self.receivers,self.pitID, \
                         self.pitVolume,self.pitDrain,self.xycoords,Acell,self.maxh,self.maxdep,self.discharge,fillH, \
                         elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,newdt,self.borders)
                 volChange = cdepo+cero
@@ -661,6 +664,8 @@ class flowNetwork:
             # Update river sediment load in kg/s
             sedld = numpy.sum(sedload,axis=1)
             self.sedload = sedld/(newdt*3.154e7)
+            den = flowdensity/1000.
+            self.flowdensity = den
 
             # Compute erosion
             erosion = numpy.zeros(cero.shape)

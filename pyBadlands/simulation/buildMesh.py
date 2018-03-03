@@ -306,10 +306,10 @@ def _build_strateroMesh(input, FVmesh, recGrid, cumdiff, verbose=False):
         strata = None
         if input.restart:
             strata = strataMesh.strataMesh(sdx, bbX, bbY, layNb, FVmesh.node_coords[:, :2],
-                                input.outDir, input.sh5file, cumdiff, input.rfolder, input.rstep)
+                                input.outDir, input.sh5file, input.poro0, input.poroC, cumdiff, input.rfolder, input.rstep)
         else:
             strata = strataMesh.strataMesh(sdx, bbX, bbY, layNb, FVmesh.node_coords[:, :2],
-                                input.outDir, input.sh5file)
+                                input.outDir, input.sh5file, input.poro0, input.poroC)
         if verbose:
             print " - create stratigraphic regions ", time.clock() - walltime
 

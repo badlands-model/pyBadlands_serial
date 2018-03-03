@@ -89,7 +89,7 @@ def output_Polylines(outPts, rcvIDs, visXlim, visYlim, coordXY):
     return flowIDs, line[lineIDs,:2]
 
 def write_hdf5(folder, h5file, step, coords, elevation, discharge, chi,
-               sedload, basin, connect):
+               sedload, flowdensity, basin, connect):
     """
     This function writes for each processor the HDF5 file containing flow network information.
 
@@ -148,6 +148,9 @@ def write_hdf5(folder, h5file, step, coords, elevation, discharge, chi,
 
         f.create_dataset('sedload',shape=(len(sedload), 1), dtype='float32', compression='gzip')
         f["sedload"][:,0] = sedload
+
+        f.create_dataset('flowdensity',shape=(len(sedload), 1), dtype='float32', compression='gzip')
+        f["flowdensity"][:,0] = flowdensity
 
         f.create_dataset('discharge',shape=(len(discharge), 1), dtype='float32', compression='gzip')
         f["discharge"][:,0] = discharge/3.154e7
@@ -259,6 +262,11 @@ def write_xmf(folder, xmffile, xdmffile, step, time, elems, nodes, h5file):
         f.write('         <Attribute Type="Scalar" Center="Node" Name="sedload [m3/s]">\n')
         f.write('          <DataItem Format="HDF" NumberType="Float" Precision="4" ')
         f.write('Dimensions="%d 1">%s:/sedload</DataItem>\n'%(nodes[p],pfile))
+        f.write('         </Attribute>\n')
+
+        f.write('         <Attribute Type="Scalar" Center="Node" Name="flowdensity adim">\n')
+        f.write('          <DataItem Format="HDF" NumberType="Float" Precision="4" ')
+        f.write('Dimensions="%d 1">%s:/flowdensity</DataItem>\n'%(nodes[p],pfile))
         f.write('         </Attribute>\n')
 
         f.write('      </Grid>\n')

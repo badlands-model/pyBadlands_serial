@@ -190,6 +190,7 @@ class Model(object):
         self.flow.xycoords = self.FVmesh.node_coords[:, :2]
         self.flow.xgrid = None
         self.flow.sedload = None
+        self.flow.flowdensity = None
         self.flow.domain = None
         self.hillslope.updatedt = 0
 
@@ -449,8 +450,9 @@ class Model(object):
                 if self.straTIN is not None:
                     self.straTIN.step += 1
                 if self.strata:
-                    self.strata.buildStrata(self.elevation, self.cumdiff, self.force.sealevel,
-                        outStrata, self.outputStep-1)
+                    sub = self.strata.buildStrata(self.elevation, self.cumdiff, self.force.sealevel,
+                        self.recGrid.boundsPt,outStrata, self.outputStep-1)
+                    self.elevation += sub
                 outStrata = 0
 
             # Get the maximum time before updating one of the above processes / components
@@ -498,8 +500,9 @@ class Model(object):
         # Update next stratal layer time
         if self.tNow >= self.force.next_layer:
             self.force.next_layer += self.input.laytime
-            self.strata.buildStrata(self.elevation, self.cumdiff, self.force.sealevel,
-                                    1, self.outputStep-1)
+            subs = self.strata.buildStrata(self.elevation, self.cumdiff, self.force.sealevel,
+                                    self.recGrid.boundsPt,1, self.outputStep-1)
+            self.elevation += sub
 
         if profile:
             pr.disable()

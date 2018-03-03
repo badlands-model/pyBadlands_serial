@@ -38,7 +38,7 @@ class strataMesh():
         Numpy array containing the current depth of each stratigraphic layer
     """
 
-    def __init__(self, sdx, bbX, bbY, layNb, xyTIN, folder, h5file,
+    def __init__(self, sdx, bbX, bbY, layNb, xyTIN, folder, h5file, poro0, poroC,
                  cumdiff=0, rfolder=None, rstep=0):
         """
         Constructor.
@@ -85,6 +85,9 @@ class strataMesh():
         self.step = 0
         self.upper = None
         self.lower = None
+        self.poro0 = poro0
+        self.poroC = poroC
+        self.xyTIN = xyTIN
 
         # User defined parameter
         self.dx = sdx
@@ -92,9 +95,9 @@ class strataMesh():
         # Create stratal regular grid
         self.nx = int(round((bbX[1]-bbX[0])/sdx - 0.5)+1)
         self.ny = int(round((bbY[1]-bbY[0])/sdx - 0.5)+1)
-        xgrid = numpy.linspace(bbX[0],bbX[1],num=self.nx)
-        ygrid = numpy.linspace(bbY[0],bbY[1],num=self.ny)
-        xi, yi = numpy.meshgrid(xgrid, ygrid)
+        self.xgrid = numpy.linspace(bbX[0],bbX[1],num=self.nx)
+        self.ygrid = numpy.linspace(bbY[0],bbY[1],num=self.ny)
+        xi, yi = numpy.meshgrid(self.xgrid, self.ygrid)
         self.xyi = numpy.dstack([xi.flatten(), yi.flatten()])[0]
 
         # Partition mesh
@@ -118,6 +121,7 @@ class strataMesh():
             layDepth = numpy.array((df['/layDepth']))
             layElev = numpy.array((df['/layElev']))
             layThick = numpy.array((df['/layThick']))
+            layPoro = numpy.array((df['/layPoro']))
             rstlays = layDepth.shape[1]
             layNb +=  rstlays
             self.step = rstlays
@@ -126,12 +130,15 @@ class strataMesh():
         self.stratIn = numpy.zeros([self.ptsNb],dtype=int)
         self.stratElev = numpy.zeros([self.ptsNb,layNb])
         self.stratThick = numpy.zeros([self.ptsNb,layNb])
+        self.stratPoro = numpy.zeros([self.ptsNb,layNb])
         self.stratDepth = numpy.zeros([self.ptsNb,layNb])
+        self.stratPoro.fill(self.poro0)
 
         if rstep > 0:
             self.stratDepth[:,:rstlays] = layDepth
             self.stratElev[:,:rstlays] = layElev
             self.stratThick[:,:rstlays] = layThick
+            self.stratPoro[:,:rstlays] = layPoro
 
         # Define TIN grid kdtree for interpolation
         self.tree = cKDTree(xyTIN)
@@ -163,6 +170,7 @@ class strataMesh():
 
         # Update TIN grid kdtree for interpolation
         self.tree = cKDTree(xyTIN)
+        self.xyTIN = xyTIN
 
     def move_mesh(self, dispX, dispY, cumdiff, verbose=False):
         """
@@ -200,6 +208,7 @@ class strataMesh():
         walltime = time.clock()
         deformXY = moveXY
         deformThick = self.stratThick[:,:self.step+1]
+        deformPoro = self.stratPoro[:,:self.step+1]
         deformElev = self.stratElev[:,:self.step+1]
         if verbose:
             print " - create deformed stratal mesh arrays ", time.clock() - walltime
@@ -226,16 +235,20 @@ class strataMesh():
         tmpIDs = numpy.where(distances[:,0] == 0)[0]
         if len(tmpIDs) > 0:
             self.stratThick[tmpIDs,:self.step+1] = deformThick[indices[tmpIDs,0],:self.step+1]
+            self.stratPoro[tmpIDs,:self.step+1]  = deformPoro[indices[tmpIDs,0],:self.step+1]
             self.stratElev[tmpIDs,:self.step+1]  = deformElev[indices[tmpIDs,0],:self.step+1]
             tmpID = numpy.where(distances[:,0] > 0)[0]
             if len(tmpID) > 0:
                 self.stratThick[tmpID,:self.step+1] = numpy.average(deformThick[indices[tmpID,:],:],
+                                                                    weights=weights[tmpID,:], axis=1)
+                self.stratPoro[tmpID,:self.step+1] = numpy.average(deformPoro[indices[tmpID,:],:],
                                                                     weights=weights[tmpID,:], axis=1)
                 self.stratElev[tmpID,:self.step+1] = numpy.average(deformElev[indices[tmpID,:],:],
                                                                     weights=weights[tmpID,:], axis=1)
 
         else:
             self.stratThick[:,:self.step+1] = numpy.average(deformThick[indices,:],weights=weights, axis=1)
+            self.stratPoro[:,:self.step+1] = numpy.average(deformPoro[indices,:],weights=weights, axis=1)
             self.stratElev[:,:self.step+1] = numpy.average(deformElev[indices,:],weights=weights, axis=1)
 
         # Reset depostion flag
@@ -250,7 +263,7 @@ class strataMesh():
 
         self.oldload = numpy.copy(cumdiff)
 
-    def buildStrata(self, elev, cumdiff, sea, write=0, outstep=0):
+    def buildStrata(self, elev, cumdiff, sea, boundsPt, write=0, outstep=0):
         """
         Build the stratigraphic layer on the regular grid.
 
@@ -303,7 +316,11 @@ class strataMesh():
         # Update stratal deposition
         localCum = fcum[self.ids]
         depIDs = numpy.where(localCum>0.)[0]
-        self.depoLayer(self.ids[depIDs], localCum)
+        subs = self.depoLayer(self.ids[depIDs], localCum)
+        subsi = numpy.reshape(subs,(len(self.ygrid),len(self.xgrid)))
+        subs_flexure = RegularGridInterpolator((self.ygrid, self.xgrid), subsi)
+        sub_poro = numpy.zeros(len(self.xyTIN[:,0]))
+        sub_poro[boundsPt:] = subs_flexure((self.xyTIN[boundsPt:,1],self.xyTIN[boundsPt:,0]))
 
         # Update stratal erosion
         eroIDs = numpy.where(localCum<0.)[0]
@@ -315,7 +332,7 @@ class strataMesh():
 
         self.step += 1
 
-        return
+        return sub_poro
 
     def buildPartition(self, bbX, bbY):
         """
@@ -386,7 +403,28 @@ class strataMesh():
         # Add deposit to the considered layer time
         self.stratThick[ids,self.step] += depo[ids]
 
-        return
+        # Define porosity values
+        self.stratPoro[ids,self.step] = self.poro0
+        cumThick = numpy.cumsum(self.stratThick[ids,self.step::-1],axis=1)[:,::-1]
+        poro = self.poro0*numpy.exp(-self.poroC*cumThick/1000.)
+        #tmpid = numpy.where(self.stratPoro[ids,:self.step+1]<poro)[0]
+        tmp1,tmp2 = numpy.where(numpy.logical_and(self.stratPoro[ids,:self.step+1]<poro,self.stratThick[ids,:self.step+1]>0.))
+        if len(tmp1)>0:
+            poro[tmp1,tmp2] = self.stratPoro[ids[tmp1],tmp2]
+        nh = self.stratThick[ids,:self.step+1]*(1.-self.stratPoro[ids,:self.step+1])/(1.-poro)
+        nh = numpy.minimum(self.stratThick[ids,:self.step+1],nh)
+
+        # Subsidence due to porosity change
+        subs = numpy.zeros(self.ptsNb)
+        subs[ids] = numpy.sum(nh-self.stratThick[ids,:self.step+1],axis=1)
+
+        # Update layer thickness
+        self.stratThick[ids,:self.step+1] = nh
+
+        # Update porosity
+        self.stratPoro[ids,:self.step+1] = poro
+
+        return subs
 
     def eroLayer(self, nids, erosion):
         """
@@ -495,3 +533,7 @@ class strataMesh():
             # Write stratal layers thicknesses per cells
             f.create_dataset('layThick',shape=(self.ptsNb,self.step+1), dtype='float32', compression='gzip')
             f["layThick"][:,:self.step+1] = self.stratThick[self.ids,:self.step+1]
+
+            # Write stratal layers porosity per cells
+            f.create_dataset('layPoro',shape=(self.ptsNb,self.step+1), dtype='float32', compression='gzip')
+            f["layPoro"][:,:self.step+1] = self.stratPoro[self.ids,:self.step+1]
