@@ -17,7 +17,7 @@ from pyBadlands import (visualiseFlow, visualiseTIN, eroMesh)
 
 def write_checkpoints(input, recGrid, lGIDs, inIDs, tNow, FVmesh, \
                       tMesh, force, flow, rain, elevation, fillH, \
-                      cumdiff, cumhill, wavediff, step, prop, \
+                      cumdiff, cumhill, cumfail, wavediff, step, prop, \
                       mapero=None, cumflex=None):
     """
     Create the checkpoint files (used for HDF5 output).
@@ -87,13 +87,13 @@ def write_checkpoints(input, recGrid, lGIDs, inIDs, tNow, FVmesh, \
     if input.flexure:
         visualiseTIN.write_hdf5_flexure(input.outDir, input.th5file, step, tMesh.node_coords[:,:2],
                                     elevation[lGIDs], rain[lGIDs], visdis[lGIDs], cumdiff[lGIDs],
-                                    cumhill[lGIDs], cumflex[lGIDs], FVmesh.outCells, input.oroRain,
+                                    cumhill[lGIDs], cumfail[lGIDs], cumflex[lGIDs], FVmesh.outCells, input.oroRain,
                                     eroOn, flow.erodibility[lGIDs], FVmesh.control_volumes[lGIDs],
                                     waveOn, meanH, meanS, wdiff, rockOn, prop[lGIDs,:])
     else:
         visualiseTIN.write_hdf5(input.outDir, input.th5file, step, tMesh.node_coords[:,:2],
                                 elevation[lGIDs], rain[lGIDs], visdis[lGIDs], cumdiff[lGIDs],
-                                cumhill[lGIDs], FVmesh.outCells, input.oroRain, eroOn,
+                                cumhill[lGIDs], cumfail[lGIDs], FVmesh.outCells, input.oroRain, eroOn,
                                 flow.erodibility[lGIDs], FVmesh.control_volumes[lGIDs],
                                 waveOn, meanH, meanS, wdiff, rockOn,
                                 prop[lGIDs,:])

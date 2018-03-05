@@ -87,7 +87,7 @@ def streamflow(input, FVmesh, recGrid, force, hillslope, flow, elevation, \
     return fillH, elevation
 
 def sediment_flux(input, recGrid, hillslope, FVmesh, tMesh, flow, force, rain, lGIDs, applyDisp, straTIN, \
-                  mapero, cumdiff, cumhill, fillH, disp, inGIDs, elevation, tNow, tEnd, verbose=False):
+                  mapero, cumdiff, cumhill, cumfail, fillH, disp, inGIDs, elevation, tNow, tEnd, verbose=False):
     """
     Compute sediment fluxes.
     """
@@ -147,6 +147,7 @@ def sediment_flux(input, recGrid, hillslope, FVmesh, tMesh, flow, force, rain, l
                 print 'Decrease your hillslope diffusion coefficients to ensure stability.'
                 sys.exit(0)
         hillslope.dt_stability_ms(FVmesh.edge_length[inGIDs,:tMesh.maxNgbh])
+        hillslope.dt_stability_fail(FVmesh.edge_length[inGIDs,:tMesh.maxNgbh])
     elif hillslope.CFL is None:
         hillslope.CFL = tEnd-tNow
 
@@ -233,6 +234,47 @@ def sediment_flux(input, recGrid, hillslope, FVmesh, tMesh, flow, force, rain, l
         if verbose:
             print " -   Get river sediment marine fluxes ", time.clock() - walltime
 
+    # Compute slope failures
+    if hillslope.Sfail > 0.:
+        walltime = time.clock()
+
+        # Initialise sediments diffusion array
+        it = 0
+        walltime = time.clock()
+        erofail = flow.compute_failure(elevation, hillslope.Sfail)
+
+        # Add slope failure erosion
+        slumpID = np.where(erofail<0)[0]
+        sumdep = -erofail
+        maxth = 0.1
+        diffstep = timestep
+        diffcoeff = hillslope.sedfluxfailure(FVmesh.control_volumes)
+
+        # Perform river related sediment diffusion
+        if len(slumpID) > 0:
+            while diffstep > 0. and it < 2000:
+                # Define maximum time step
+                maxstep = min(hillslope.CFLfail,diffstep)
+                # Compute maximum marine fluxes and maximum timestep to avoid excessive diffusion erosion
+                difffail, mindt = flow.compute_failure_diffusion(elevation, sumdep, FVmesh.neighbours, FVmesh.vor_edges,
+                                                FVmesh.edge_length, diffcoeff, lGIDs, maxth, maxstep)
+
+                difffail[flow.outsideIDs] = 0.
+                maxstep = min(mindt,maxstep)
+
+                # Update diffusion time step and total diffused thicknesses
+                diffstep -= maxstep
+
+                # Update elevation, erosion/deposition
+                sumdep += difffail*maxstep
+                elevation += difffail*maxstep
+                cumdiff += difffail*maxstep
+                cumfail += difffail*maxstep
+                it += 1
+
+        if verbose:
+            print " -   Get slope failure sediment fluxes ", time.clock() - walltime
+
     # Compute hillslope processes
     dtype = 1
     if straTIN is None:
@@ -301,4 +343,4 @@ def sediment_flux(input, recGrid, hillslope, FVmesh, tMesh, flow, force, rain, l
     if verbose:
         print " - Flow computation ", time.clock() - flow_time
 
-    return tNow,elevation,cumdiff,cumhill
+    return tNow,elevation,cumdiff,cumhill,cumfail

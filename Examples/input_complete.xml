@@ -394,6 +394,11 @@
         <!-- River transported sediment diffusion
              coefficient in marine realm [m2/a] -->
         <criver>10.</criver>
+        <!-- Critical slope above which slope failure are triggered [m/m] - optional.
+             Default value is set to 0 meaning non-lnear diffusion is not considered. -->
+        <sfail>0.26</sfail>
+        <!-- Triggered failure sediment diffusion coefficient [m2/a] -->
+        <cfail>3.</cfail>
     </creep>
 
     <!-- Wave global parameters structure -->

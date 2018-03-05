@@ -77,7 +77,7 @@ def output_cellsIDs(lGIDs, inIDs, visXlim, visYlim, coords, cells):
 
     return lGIDs[allInside], outcell[localCell2] + 1
 
-def write_hdf5(folder, h5file, step, coords, elevation, rain, discharge, cumdiff, cumhill,
+def write_hdf5(folder, h5file, step, coords, elevation, rain, discharge, cumdiff, cumhill, cumfail,
                cells, rainOn, eroOn, erodibility, area, waveOn, waveH, waveS, wavediff,
                rockOn, prop):
     """
@@ -168,6 +168,9 @@ def write_hdf5(folder, h5file, step, coords, elevation, rain, discharge, cumdiff
         f.create_dataset('cumhill',shape=(len(discharge), 1), dtype='float32', compression='gzip')
         f["cumhill"][:,0] = cumhill
 
+        f.create_dataset('cumfail',shape=(len(discharge), 1), dtype='float32', compression='gzip')
+        f["cumfail"][:,0] = cumfail
+
         f.create_dataset('area',shape=(len(discharge), 1), dtype='float32', compression='gzip')
         f["area"][:,0] = area
 
@@ -192,7 +195,7 @@ def write_hdf5(folder, h5file, step, coords, elevation, rain, discharge, cumdiff
                     f.create_dataset('depSpecies2',shape=(len(discharge), 1), dtype='float32', compression='gzip')
                     f["depSpecies2"][:,0] = prop[:,k]
 
-def write_hdf5_flexure(folder, h5file, step, coords, elevation, rain, discharge, cumdiff, cumhill,
+def write_hdf5_flexure(folder, h5file, step, coords, elevation, rain, discharge, cumdiff, cumhill, cumfail,
                        cumflex, cells, rainOn, eroOn, erodibility, area, waveOn, waveH,  waveS, wavediff,
                        rockOn, prop):
     """
@@ -282,6 +285,9 @@ def write_hdf5_flexure(folder, h5file, step, coords, elevation, rain, discharge,
 
         f.create_dataset('cumhill',shape=(len(discharge), 1), dtype='float32', compression='gzip')
         f["cumhill"][:,0] = cumhill
+
+        f.create_dataset('cumfail',shape=(len(discharge), 1), dtype='float32', compression='gzip')
+        f["cumfail"][:,0] = cumfail
 
         f.create_dataset('cumflex',shape=(len(discharge), 1), dtype='float32', compression='gzip')
         f["cumflex"][:,0] = cumflex
@@ -431,6 +437,11 @@ def write_xmf(folder, xmffile, xdmffile, step, t, elems, nodes, h5file, sealevel
         f.write('         <Attribute Type="Scalar" Center="Node" Name="EroDep hillslope">\n')
         f.write('          <DataItem Format="HDF" NumberType="Float" Precision="4" ')
         f.write('Dimensions="%d 1">%s:/cumhill</DataItem>\n'%(nodes[p],pfile))
+        f.write('         </Attribute>\n')
+
+        f.write('         <Attribute Type="Scalar" Center="Node" Name="EroDep failure">\n')
+        f.write('          <DataItem Format="HDF" NumberType="Float" Precision="4" ')
+        f.write('Dimensions="%d 1">%s:/cumfail</DataItem>\n'%(nodes[p],pfile))
         f.write('         </Attribute>\n')
 
         if flexOn:

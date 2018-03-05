@@ -96,9 +96,9 @@ def construct_mesh(input, filename, verbose=False):
 
     # Define TIN parameters
     if input.flexure:
-        elevation, cumdiff, cumhill, cumflex, inIDs, parentIDs = _define_TINparams(totPts, input, FVmesh, recGrid, verbose)
+        elevation, cumdiff, cumhill, cumfail, cumflex, inIDs, parentIDs = _define_TINparams(totPts, input, FVmesh, recGrid, verbose)
     else:
-        elevation, cumdiff, cumhill, inIDs, parentIDs = _define_TINparams(totPts, input, FVmesh, recGrid, verbose)
+        elevation, cumdiff, cumhill, cumfail, inIDs, parentIDs = _define_TINparams(totPts, input, FVmesh, recGrid, verbose)
 
     # Build stratigraphic and erodibility meshes
     if input.laytime > 0 and input.erolays >= 0:
@@ -160,7 +160,7 @@ def construct_mesh(input, filename, verbose=False):
 
     return recGrid, FVmesh, force, tMesh, lGIDs, fixIDs, \
         inIDs, parentIDs, inGIDs, totPts, elevation, cumdiff, \
-        cumhill, cumflex, strata, mapero, tinFlex, flex, wave, \
+        cumhill, cumfail, cumflex, strata, mapero, tinFlex, flex, wave, \
         straTIN, carbTIN
 
 def reconstruct_mesh(recGrid, input, verbose=False):
@@ -242,13 +242,15 @@ def _define_TINparams(totPts, input, FVmesh, recGrid, verbose=False):
         local_cum.fill(-1.e6)
         local_hill = np.zeros(totPts)
         local_hill.fill(-1.e6)
+        local_fail = np.zeros(totPts)
+        local_fail.fill(-1.e6)
         if input.flexure:
             local_cumflex = np.zeros(totPts)
             local_cumflex.fill(-1.e6)
-            local_elev[inIDs],local_cum[inIDs],local_hill[inIDs], local_cumflex[inIDs] = recGrid.load_hdf5_flex(input.rfolder,
+            local_elev[inIDs],local_cum[inIDs],local_hill[inIDs], local_fail[inIDs], local_cumflex[inIDs] = recGrid.load_hdf5_flex(input.rfolder,
                                                                 input.rstep,FVmesh.node_coords[inIDs, :2])
         else:
-            local_elev[inIDs],local_cum[inIDs],local_hill[inIDs] = recGrid.load_hdf5(input.rfolder,input.rstep,
+            local_elev[inIDs],local_cum[inIDs],local_hill[inIDs], local_fail[inIDs] = recGrid.load_hdf5(input.rfolder,input.rstep,
                                                                 FVmesh.node_coords[inIDs, :2])
 
         # Get cumulative erosion/deposition values
@@ -256,6 +258,8 @@ def _define_TINparams(totPts, input, FVmesh, recGrid, verbose=False):
         cumdiff[:recGrid.boundsPt] = 0.
         cumhill = local_hill
         cumhill[:recGrid.boundsPt] = 0.
+        cumfail = local_hill
+        cumfail[:recGrid.boundsPt] = 0.
         if input.flexure:
             # Get cumulative flexural values
             cumflex = local_cumflex
@@ -268,6 +272,7 @@ def _define_TINparams(totPts, input, FVmesh, recGrid, verbose=False):
         # Initialise TIN parameters
         cumdiff = np.zeros(totPts)
         cumhill = np.zeros(totPts)
+        cumfail = np.zeros(totPts)
         if input.flexure:
             cumflex = np.zeros(totPts)
 
@@ -283,9 +288,9 @@ def _define_TINparams(totPts, input, FVmesh, recGrid, verbose=False):
         print " - define paramters on TIN grid ", time.clock() - walltime
 
     if input.flexure:
-        return elevation, cumdiff, cumhill, cumflex, inIDs, parentIDs
+        return elevation, cumdiff, cumhill, cumfail, cumflex, inIDs, parentIDs
     else:
-        return elevation, cumdiff, cumhill, inIDs, parentIDs
+        return elevation, cumdiff, cumhill, cumfail, inIDs, parentIDs
 
 def _build_strateroMesh(input, FVmesh, recGrid, cumdiff, verbose=False):
     """

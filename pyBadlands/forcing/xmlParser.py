@@ -122,6 +122,8 @@ class xmlParser:
         self.CDa = 0.
         self.CDm = 0.
         self.Sc = 0.
+        self.Sfail = 0.
+        self.Cfail = 0.
         self.CDr = 0.
         self.makeUniqueOutputDir = makeUniqueOutputDir
 
@@ -1038,6 +1040,22 @@ class xmlParser:
                     self.Sc = 0.
             else:
                 self.Sc = 0.
+            element = None
+            element = creep.find('sfail')
+            if element is not None:
+                self.Sfail = float(element.text)
+                if self.Sfail < 0.:
+                    self.Sfail = 0.
+            else:
+                self.Sfail = 0.
+            element = None
+            element = creep.find('cfail')
+            if element is not None:
+                self.Cfail = float(element.text)
+                if self.Cfail < 0.:
+                    self.Cfail = 0.
+            else:
+                self.Cfail = 0.
             element = None
             element = creep.find('criver')
             if element is not None:

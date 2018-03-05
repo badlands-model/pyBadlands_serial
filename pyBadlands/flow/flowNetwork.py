@@ -182,6 +182,57 @@ class flowNetwork:
 
         return diff_flux,mindt
 
+    def compute_failure_diffusion(self, elev, depoH, neighbours, edges, distances, coeff,
+                                 globalIDs, maxth, tstep):
+        """
+        Perform slope failure transported sediments diffusion.
+
+        Parameters
+        ----------
+        elev
+            Numpy arrays containing the elevation of the TIN nodes.
+
+        dep
+            Numpy arrays flagging the deposited nodes.
+
+        neighbours
+            Numpy integer-type array with the neighbourhood IDs.
+
+        edges
+            Numpy real-type array with the voronoi edges length for each neighbours of the TIN nodes.
+
+        distances
+            Numpy real-type array with the distances between each connection in the TIN.
+
+        globalIDs
+            Numpy integer-type array containing for local nodes their global IDs.
+        """
+        diff_flux, ndt = FLOWalgo.flowcompute.difffailure(elev, self.borders, depoH, neighbours, edges,
+                                           distances, coeff, globalIDs, maxth, tstep)
+
+        # Send local diffusion flux globally
+        mindt = numpy.array(ndt)
+
+        return diff_flux,mindt
+
+    def compute_failure(self, elev, sfail):
+        """
+        Perform erosion induced by slope failure.
+
+        Parameters
+        ----------
+        elev
+            Numpy arrays containing the elevation of the TIN nodes.
+
+        sfail
+            Critical slope to initiate slope failure.
+        """
+
+        erosion = FLOWalgo.flowcompute.slumpero(self.localstack,self.receivers,self.xycoords, \
+                             elev,sfail,self.borders)
+
+        return erosion
+
     def compute_sediment_marine(self, elev, dep, sdep, coeff, neighbours, seal, maxth,
                                 edges, distances, globalIDs):
         """
@@ -687,6 +738,7 @@ class flowNetwork:
                 plainid,landid,seaid,perc,nplain,nland,nsea,ndepo = FLOWalgo.flowcompute.getids(fillH,elev,depo,
                                                                     self.pitVolume,sealevel)
                 depo = ndepo
+
                 if nplain > 0:
                     plainID = plainid[:nplain]
                     deposition[plainID,:] = depo[plainID,:]/Acell[plainID].reshape(len(plainID),1)

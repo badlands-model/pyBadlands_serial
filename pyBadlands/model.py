@@ -77,7 +77,7 @@ class Model(object):
     def build_mesh(self, filename, verbose):
         # Construct Badlands mesh and grid to run simulation
         self.recGrid, self.FVmesh, self.force, self.tMesh, self.lGIDs, self.fixIDs, self.inIDs, parentIDs, \
-        self.inGIDs, self.totPts, self.elevation, self.cumdiff, self.cumhill, self.cumflex, self.strata, self.mapero, \
+        self.inGIDs, self.totPts, self.elevation, self.cumdiff, self.cumhill, self.cumfail, self.cumflex, self.strata, self.mapero, \
         self.tinFlex, self.flex, self.wave, self.straTIN, self.carbTIN = buildMesh.construct_mesh(self.input, filename, verbose)
 
         if self.input.waveSed:
@@ -91,6 +91,9 @@ class Model(object):
         self.hillslope.CDaerial = self.input.CDa
         self.hillslope.CDmarine = self.input.CDm
         self.hillslope.CDriver = self.input.CDr
+        self.hillslope.Sc = self.input.Sc
+        self.hillslope.Sfail = self.input.Sfail
+        self.hillslope.Cfail = self.input.Cfail
         self.hillslope.Sc = self.input.Sc
         self.hillslope.updatedt = 0
 
@@ -311,8 +314,8 @@ class Model(object):
                             vKe = self.mapero.Ke
                             vTh = self.mapero.thickness
                         # Apply horizontal displacements
-                        self.recGrid.tinMesh, self.elevation, self.cumdiff, self.cumhill, self.wavediff, fcum, scum, Ke, Th = self.force.apply_XY_dispacements(
-                            self.recGrid.areaDel, self.fixIDs, self.elevation, self.cumdiff, self.cumhill, self.wavediff,
+                        self.recGrid.tinMesh, self.elevation, self.cumdiff, self.cumhill, self.cumfail, self.wavediff, fcum, scum, Ke, Th = self.force.apply_XY_dispacements(
+                            self.recGrid.areaDel, self.fixIDs, self.elevation, self.cumdiff, self.cumhill, self.cumfail, self.wavediff,
                             tflex=flexiso, scum=sload, Te=vTh,Ke=vKe, flexure=fflex, strat=fstrat, ero=fero)
                         # Update relevant parameters in deformed TIN
                         if fflex == 1:
@@ -424,7 +427,7 @@ class Model(object):
                     outStrata = 1
                 checkPoints.write_checkpoints(self.input, self.recGrid, self.lGIDs, self.inIDs, self.tNow,
                                             self.FVmesh, self.tMesh, self.force, self.flow, self.rain,
-                                            self.elevation, self.fillH, self.cumdiff, self.cumhill, self.wavediff,
+                                            self.elevation, self.fillH, self.cumdiff, self.cumhill, self.cumfail, self.wavediff,
                                             self.outputStep, self.prop, self.mapero, self.cumflex)
 
                 if self.straTIN is not None and self.outputStep % self.input.tmesh==0:
@@ -460,9 +463,9 @@ class Model(object):
                         tEnd, self.force.next_wave, self.force.next_disp, self.force.next_rain,
                         self.force.next_carb])
 
-            self.tNow, self.elevation, self.cumdiff, self.cumhill = buildFlux.sediment_flux(self.input, self.recGrid, self.hillslope, \
+            self.tNow, self.elevation, self.cumdiff, self.cumhill, self.cumfail = buildFlux.sediment_flux(self.input, self.recGrid, self.hillslope, \
                               self.FVmesh, self.tMesh, self.flow, self.force, self.rain, self.lGIDs, self.applyDisp, self.straTIN, self.mapero,  \
-                              self.cumdiff, self.cumhill, self.fillH, self.disp, self.inGIDs, self.elevation, self.tNow, tStop, verbose)
+                              self.cumdiff, self.cumhill, self.cumfail, self.fillH, self.disp, self.inGIDs, self.elevation, self.tNow, tStop, verbose)
 
         tloop = time.clock() - last_time
         print 'tNow = %s (%0.02f seconds)' % (self.tNow, tloop)
@@ -487,7 +490,7 @@ class Model(object):
         if self.input.udw == 0 or self.tNow == self.input.tEnd or self.tNow == self.force.next_display:
             checkPoints.write_checkpoints(self.input, self.recGrid, self.lGIDs, self.inIDs, self.tNow, \
                                 self.FVmesh, self.tMesh, self.force, self.flow, self.rain, \
-                                self.elevation, self.fillH, self.cumdiff, self.cumhill, self.wavediff, \
+                                self.elevation, self.fillH, self.cumdiff, self.cumhill, self.cumfail, self.wavediff, \
                                 self.outputStep, self.prop, self.mapero, self.cumflex)
             self.force.next_display += self.input.tDisplay
             self.outputStep += 1

@@ -394,6 +394,63 @@ contains
 
   end subroutine diffmarine
 
+  subroutine difffailure(pyZ, pyBord, pyDepoH, pyNgbs, pyEdge, pyDist, pyCoeff, pyGIDs, &
+                        pymaxth, tstep, pyDiff, mindt, pylocalNb, pyglobalNb)
+
+      integer :: pyglobalNb
+      integer :: pylocalNb
+      integer,dimension(pylocalNb),intent(in) :: pyGIDs
+      integer,dimension(pyglobalNb),intent(in) :: pyBord
+      integer,dimension(pyglobalNb,20),intent(in) :: pyNgbs
+
+      real(kind=8),intent(in) :: pymaxth
+      real(kind=8),intent(in) :: tstep
+      real(kind=8),dimension(pyglobalNb),intent(in) :: pyZ
+      real(kind=8),dimension(pyglobalNb),intent(in) :: pyCoeff
+      real(kind=8),dimension(pyglobalNb),intent(in) :: pyDepoH
+      real(kind=8),dimension(pyglobalNb,20),intent(in) :: pyEdge
+      real(kind=8),dimension(pyglobalNb,20),intent(in) :: pyDist
+
+      real(kind=8),intent(out) :: mindt
+      real(kind=8),dimension(pyglobalNb),intent(out) :: pyDiff
+
+      integer :: k, gid, ngbid, p
+      real(kind=8) :: flx
+
+      pyDiff = 0.
+      mindt = tstep
+      do k = 1, pylocalNb
+        gid = pyGIDs(k)+1
+        if(pyBord(gid)>0)then
+          loop: do p =1,20
+            if(pyNgbs(gid,p)<0) exit loop
+            ngbid = pyNgbs(gid,p)+1
+            if(pyBord(ngbid)>0.)then
+              flx = pyEdge(gid,p)*(pyZ(ngbid)-pyZ(gid))/pyDist(gid,p)
+              if(pyDepoH(gid)>pymaxth .and. pyZ(gid)>pyZ(ngbid))then
+                pyDiff(gid) = pyDiff(gid) + pyCoeff(gid)*flx
+              elseif(pyDepoH(ngbid)>pymaxth .and. pyZ(gid)<pyZ(ngbid))then
+                pyDiff(gid) = pyDiff(gid) + pyCoeff(gid)*flx
+              endif
+            elseif(pyBord(ngbid)<1)then
+              if(pyDepoH(gid)>pymaxth .and. pyZ(gid)>pyZ(ngbid))then
+                flx = pyEdge(gid,p)*(pyZ(ngbid)-pyZ(gid))/pyDist(gid,p)
+                pyDiff(gid) = pyDiff(gid) + pyCoeff(gid)*flx
+              endif
+            endif
+          enddo loop
+          ! In case we diffuse more sediment than what is available during the
+          ! considered time step, flag it
+          if(pyDiff(gid)<0. .and. pyDiff(gid)*tstep<-pyDepoH(gid))then
+            mindt = min(-pyDepoH(gid)/pyDiff(gid),mindt)
+          endif
+        endif
+      enddo
+
+      return
+
+  end subroutine difffailure
+
   subroutine diffsedmarine(pyZ, pyBord, pyDepo, pyDepoH, slvl, pymaxth, pyCoeff, pyNgbs, pyEdge, &
                           pyDist, pyGIDs, pyDiff, sumDiff, pylocalNb, pyglobalNb, pyRockNb)
 
@@ -586,6 +643,49 @@ contains
       return
 
   end subroutine diffsedhillslope
+
+  subroutine slumpero(pyStack, pyRcv, pyXY, pyElev, pySfail, borders,pyEro, pylNodesNb, pygNodesNb)
+
+        integer :: pylNodesNb
+        integer :: pygNodesNb
+
+        real(kind=8),intent(in) :: pySfail
+        integer,dimension(pylNodesNb),intent(in) :: pyStack
+        integer,dimension(pygNodesNb),intent(in) :: pyRcv
+        integer,dimension(pygNodesNb),intent(in) :: borders
+
+        real(kind=8),dimension(pygNodesNb,2),intent(in) :: pyXY
+        real(kind=8),dimension(pygNodesNb),intent(in) :: pyElev
+
+        real(kind=8),dimension(pygNodesNb),intent(out) :: pyEro
+
+        integer :: n, donor, recvr
+        real(kind=8) :: dh, dhmax
+        real(kind=8) :: dist, slope
+
+        pyEro = 0.
+
+        do n = pylNodesNb, 1, -1
+
+          donor = pyStack(n) + 1
+          recvr = pyRcv(donor) + 1
+          dh = (pyElev(donor) - pyElev(recvr))
+          dist = sqrt( (pyXY(donor,1)-pyXY(recvr,1))**2.0 + (pyXY(donor,2)-pyXY(recvr,2))**2.0 )
+          slope = dh/dist
+          dhmax = 0.
+          if(slope>pySfail)then
+            dhmax = (pySfail-0.001)*dist
+            !if(dhmax>20) dhmax=20.
+          endif
+          if(borders(donor) > 0)then
+            pyEro(donor) = -dhmax
+          endif
+
+        enddo
+
+        return
+
+  end subroutine slumpero
 
   subroutine streampower(sedfluxcrit,pyStack, pyRcv, pitID, pitVol1, pitDrain, pyXY, pyArea, pyMaxH, &
       pyMaxD, pyDischarge, pyFillH, pyElev, pyRiv, Cero, actlay, perc_dep, slp_cr, sea, dt, &
