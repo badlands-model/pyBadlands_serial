@@ -404,25 +404,23 @@ class strataMesh():
         self.stratThick[ids,self.step] += depo[ids]
 
         # Define porosity values
-        self.stratPoro[ids,self.step] = self.poro0
-        cumThick = numpy.cumsum(self.stratThick[ids,self.step::-1],axis=1)[:,::-1]
-        poro = self.poro0*numpy.exp(-self.poroC*cumThick/1000.)
-        #tmpid = numpy.where(self.stratPoro[ids,:self.step+1]<poro)[0]
-        tmp1,tmp2 = numpy.where(numpy.logical_and(self.stratPoro[ids,:self.step+1]<poro,self.stratThick[ids,:self.step+1]>0.))
-        if len(tmp1)>0:
-            poro[tmp1,tmp2] = self.stratPoro[ids[tmp1],tmp2]
-        nh = self.stratThick[ids,:self.step+1]*(1.-self.stratPoro[ids,:self.step+1])/(1.-poro)
-        nh = numpy.minimum(self.stratThick[ids,:self.step+1],nh)
-
-        # Subsidence due to porosity change
         subs = numpy.zeros(self.ptsNb)
-        subs[ids] = numpy.sum(nh-self.stratThick[ids,:self.step+1],axis=1)
-
-        # Update layer thickness
-        self.stratThick[ids,:self.step+1] = nh
-
-        # Update porosity
-        self.stratPoro[ids,:self.step+1] = poro
+        if self.poro0 > 0:
+            self.stratPoro[ids,self.step] = self.poro0
+            cumThick = numpy.cumsum(self.stratThick[ids,self.step::-1],axis=1)[:,::-1]
+            poro = self.poro0*numpy.exp(-self.poroC*cumThick/1000.)
+            #tmpid = numpy.where(self.stratPoro[ids,:self.step+1]<poro)[0]
+            tmp1,tmp2 = numpy.where(numpy.logical_and(self.stratPoro[ids,:self.step+1]<poro,self.stratThick[ids,:self.step+1]>0.))
+            if len(tmp1)>0:
+                 poro[tmp1,tmp2] = self.stratPoro[ids[tmp1],tmp2]
+            nh = self.stratThick[ids,:self.step+1]*(1.-self.stratPoro[ids,:self.step+1])/(1.-poro)
+            nh = numpy.minimum(self.stratThick[ids,:self.step+1],nh)
+            # Subsidence due to porosity change
+            subs[ids] = numpy.sum(nh-self.stratThick[ids,:self.step+1],axis=1)
+            # Update layer thickness
+            self.stratThick[ids,:self.step+1] = nh
+            # Update porosity
+            self.stratPoro[ids,:self.step+1] = poro
 
         return subs
 

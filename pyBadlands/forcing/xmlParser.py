@@ -46,7 +46,7 @@ class xmlParser:
         self.Afactor = 1
         self.nopit = 0
         self.udw = 0
-        self.poro0 = 0.52
+        self.poro0 = 0.
         self.poroC = 0.47
 
         self.restart = False

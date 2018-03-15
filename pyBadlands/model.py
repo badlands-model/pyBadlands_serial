@@ -456,6 +456,7 @@ class Model(object):
                     sub = self.strata.buildStrata(self.elevation, self.cumdiff, self.force.sealevel,
                         self.recGrid.boundsPt,outStrata, self.outputStep-1)
                     self.elevation += sub
+                    self.cumdiff += sub
                 outStrata = 0
 
             # Get the maximum time before updating one of the above processes / components
@@ -506,6 +507,7 @@ class Model(object):
             subs = self.strata.buildStrata(self.elevation, self.cumdiff, self.force.sealevel,
                                     self.recGrid.boundsPt,1, self.outputStep-1)
             self.elevation += sub
+            self.cumdiff += sub
 
         if profile:
             pr.disable()
