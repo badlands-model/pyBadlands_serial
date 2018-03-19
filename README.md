@@ -88,4 +88,3 @@ A compilation of notebooks with examples are proposed to give you a quick feelin
 
 
 When you use **Badlands**, please cite the above papers.
-# pyBadlands-serial
