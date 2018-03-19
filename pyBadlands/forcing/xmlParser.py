@@ -945,7 +945,7 @@ class xmlParser:
             if element is not None:
                 self.denscrit = float(element.text)
             element = None
-            element = sea.find('deepbasin')
+            element = spl.find('deepbasin')
             if element is not None:
                 self.deepbasin = float(element.text)
             element = None
