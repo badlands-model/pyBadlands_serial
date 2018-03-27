@@ -315,10 +315,16 @@ class raster2TIN:
 
         onIDs = numpy.where(distances[:,0] == 0)[0]
         if len(onIDs) > 0:
-            elev[onIDs] = z[indices[onIDs,0]]
-            cum[onIDs] = c[indices[onIDs,0]]
-            hcum[onIDs] = h[indices[onIDs,0]]
-            fcum[onIDs] = f[indices[onIDs,0]]
+            if len(z[indices].shape) == 3:
+                elev[onIDs] = z[indices[onIDs,0],0]
+                cum[onIDs] = c[indices[onIDs,0],0]
+                hcum[onIDs] = h[indices[onIDs,0],0]
+                fcum[onIDs] = f[indices[onIDs,0],0]
+            else:
+                elev[onIDs] = z[indices[onIDs,0]]
+                cum[onIDs] = c[indices[onIDs,0]]
+                hcum[onIDs] = h[indices[onIDs,0]]
+                fcum[onIDs] = f[indices[onIDs,0]]
 
         return elev, cum, hcum, fcum
 
