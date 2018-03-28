@@ -602,7 +602,7 @@ class forceSim:
         else:
             return update
 
-    def apply_XY_dispacements(self, area, fixIDs, telev, tcum, hcum, wcum, tflex=None, scum=None,
+    def apply_XY_dispacements(self, area, fixIDs, telev, tcum, hcum, fcum, wcum, tflex=None, scum=None,
                                       Te=None, Ke=None, flexure=0, strat=0, ero=0):
         """
         Apply horizontal displacements and check if any points need to be merged.
@@ -704,6 +704,7 @@ class forceSim:
             elev = numpy.delete(telev, tID, 0)
             cum = numpy.delete(tcum, tID, 0)
             hum = numpy.delete(hcum, tID, 0)
+            fum = numpy.delete(fcum, tID, 0)
             if wcum is not None:
                 wum = numpy.delete(wcum, tID, 0)
             if flexure == 1:
@@ -722,6 +723,7 @@ class forceSim:
             elev = telev
             cum = tcum
             hum = hcum
+            fum = fcum
             if wcum is not None:
                 wum = hwum
             if flexure == 1:
@@ -754,6 +756,7 @@ class forceSim:
                 z_vals = elev[indices][:,:,0]
                 cum_vals = cum[indices][:,:,0]
                 hum_vals = hum[indices][:,:,0]
+                fum_vals = fum[indices][:,:,0]
                 if wcum is not None:
                     wum_vals = wum[indices][:,:,0]
                 if flexure == 1:
@@ -764,6 +767,7 @@ class forceSim:
                 z_vals = elev[indices]
                 cum_vals = cum[indices]
                 hum_vals = hum[indices]
+                fum_vals = fum[indices]
                 if wcum is not None:
                     wum_vals = wum[indices]
                 if flexure == 1:
@@ -773,6 +777,7 @@ class forceSim:
             z_avg = numpy.average(z_vals, weights=weights,axis=1)
             cum_avg = numpy.average(cum_vals, weights=weights,axis=1)
             hum_avg = numpy.average(hum_vals, weights=weights,axis=1)
+            fum_avg = numpy.average(fum_vals, weights=weights,axis=1)
             if wcum is not None:
                 wum_avg = numpy.average(wum_vals, weights=weights,axis=1)
             if flexure == 1:
@@ -796,6 +801,7 @@ class forceSim:
             newelev = numpy.delete(elev, mergedIDs, 0)
             newcum = numpy.delete(cum, mergedIDs, 0)
             newhcum = numpy.delete(hum, mergedIDs, 0)
+            newfcum = numpy.delete(fum, mergedIDs, 0)
             if wcum is not None:
                 newwcum = numpy.delete(wum, mergedIDs, 0)
             if flexure == 1:
@@ -813,6 +819,7 @@ class forceSim:
             newelev = numpy.concatenate((newelev, z_avg), axis=0)
             newcum = numpy.concatenate((newcum, cum_avg), axis=0)
             newhcum = numpy.concatenate((newhcum, hum_avg), axis=0)
+            newfcum = numpy.concatenate((newfcum, fum_avg), axis=0)
             if wcum is not None:
                 newwcum = numpy.concatenate((newwcum, wum_avg), axis=0)
             if flexure == 1:
@@ -830,6 +837,7 @@ class forceSim:
             newelev = elev
             newcum = cum
             newhcum = hum
+            newfcum = fum
             if wcum is not None:
                 newwcum = wum
             if flexure == 1:
@@ -852,6 +860,7 @@ class forceSim:
                 zvals = elev[ids][:,:,0]
                 cumvals = cum[ids][:,:,0]
                 humvals = hum[ids][:,:,0]
+                fumvals = fum[ids][:,:,0]
                 if wcum is not None:
                     wumvals = wum[ids][:,:,0]
                 if flexure == 1:
@@ -862,6 +871,7 @@ class forceSim:
                 zvals = elev[ids]
                 cumvals = cum[ids]
                 humvals = hum[ids]
+                fumvals = fum[ids]
                 if wcum is not None:
                     wumvals = wum[ids]
                 if flexure == 1:
@@ -881,6 +891,7 @@ class forceSim:
             zavg = numpy.average(zvals, weights=weights,axis=1)
             cumavg = numpy.average(cumvals, weights=weights,axis=1)
             humavg = numpy.average(humvals, weights=weights,axis=1)
+            fumavg = numpy.average(fumvals, weights=weights,axis=1)
             if wcum is not None:
                 wumavg = numpy.average(wumvals, weights=weights,axis=1)
             if flexure == 1:
@@ -896,6 +907,7 @@ class forceSim:
             newelev = numpy.concatenate((newelev, zavg), axis=0)
             newcum = numpy.concatenate((newcum, cumavg), axis=0)
             newhcum = numpy.concatenate((newhcum, humavg), axis=0)
+            newfcum = numpy.concatenate((newfcum, fumavg), axis=0)
             if wcum is not None:
                 newwcum = numpy.concatenate((newwcum, wumavg), axis=0)
             if flexure == 1:
@@ -921,4 +933,4 @@ class forceSim:
         if wcum is None:
             newwcum = None
 
-        return newTIN, newelev, newcum, newhcum, newwcum, newcumf, newscum, newKe, newTe
+        return newTIN, newelev, newcum, newhcum, newfcum, newwcum, newcumf, newscum, newKe, newTe
