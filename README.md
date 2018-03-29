@@ -86,5 +86,7 @@ A compilation of notebooks with examples are proposed to give you a quick feelin
 
 + **Salles, T., N. Flament, and D. Muller: [Influence of mantle flow on the drainage of eastern Australia since the Jurassic Period](http://dx.doi.org/10.1002/2016GC006617), Geochem. Geophys. Geosyst., 18, doi:10.1002/2016GC006617, 2017** -- [Supplementary materials: Australian Landscape Dynamic](https://github.com/badlands-model/g-cubed-2016)
 
++ **Salles, T., X. Ding, J.M. Webster, A. Vila-Concejo, G. Brocard and J. Pall: [A unified framework for modelling sediment fate from source to sink and its interactions with reef systems over geological times](https://doi.org/10.1038/s41598-018-23519-8), Nature Scientific Report, doi:10.1038/s41598-018-23519-8, 2018** 
+
 
 When you use **Badlands**, please cite the above papers.
