@@ -17,6 +17,8 @@ pyBadlands - Basin & Landscape Dynamics
 
 For installation information and documentation visit our github [**wiki page**](https://github.com/badlands-model/pyBadlands/wiki) which provides several useful notes on how to start using the tool.
 
+Recent examples part of our pyBadlands workshops are available through the following github [repository](https://github.com/badlands-model/pyBadlands-workshop).
+
 The easiest way to get started is with the [Docker container](https://hub.docker.com/u/badlandsmodel/) using [Kitematic](https://docs.docker.com/kitematic/userguide/). Once **Kitematic** is installed on your computer, open it and look for **pybadlands-demo** via the *search* menu.
 
 If you want to install it yourself, these 2 Dockerfiles ([**dependencies**](https://github.com/badlands-model/pyBadlands-Dependencies-Docker/blob/master/Dockerfile) & [**code**](https://github.com/badlands-model/pyBadlands-Docker-Demo/blob/master/Dockerfile)) are the best documentation of the required packages.
@@ -76,6 +78,14 @@ A compilation of notebooks with examples are proposed to give you a quick feelin
 + infilling of a crater-type topography [nbviewer](http://nbviewer.jupyter.org/github/badlands-model/pyBadlands/blob/master/Examples/crater/crater.ipynb)
 + flexural response due to loading and unloading under variable elastic thickness [nbviewer](http://nbviewer.jupyter.org/github/badlands-model/pyBadlands/blob/master/Examples/flexure/flexure.ipynb)
 + quick setup of real topography/bathymetry model using etopo1 [nbviewer](http://nbviewer.jupyter.org/github/badlands-model/pyBadlands/blob/master/Examples/etopo/etopo.ipynb)
+
+#### Stratigraphy & Wheeler diagram in pyBadlands
+
+[Youtube video](https://youtu.be/VRXR86uRnUY)
+
+<div align="center">
+    <img width=500 src="https://github.com/badlands-model/Badlands-Code/blob/master/badlands-doc/figures/stratalDing.png" alt="YouTube" title="Youtube"</img>
+</div>
 
 ### Documentation related to the physics & assumptions
 
