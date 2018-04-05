@@ -50,7 +50,7 @@ class xmlParser:
         self.poroC = 0.47
 
         self.restart = False
-        self.rForlder = None
+        self.rfolder = None
         self.rstep = 0
         self.tStart = None
         self.tEnd = None
