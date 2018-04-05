@@ -51,7 +51,7 @@ class xmlParser:
 
         self.restart = False
         self.rForlder = None
-        self.rStep = 0
+        self.rstep = 0
         self.tStart = None
         self.tEnd = None
         self.tDisplay = None
