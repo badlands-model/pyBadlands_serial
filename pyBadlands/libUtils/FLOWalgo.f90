@@ -688,7 +688,7 @@ contains
   end subroutine slumpero
 
   subroutine streampower(sedfluxcrit,pyStack, pyRcv, pitID, pitVol1, pitDrain, pyXY, pyArea, pyMaxH, &
-      pyMaxD, pyDischarge, pyFillH, pyElev, pyRiv, Cero, actlay, perc_dep, slp_cr, sea, dt, &
+      pyMaxD, pyDischarge, pyFillH, pyElev, pyRiv, Cero, actlay, perc_dep, slp_cr, sea, db, dt, &
       borders, pyDepo, pyEro, sedFluxes, pyDensity, pylNodesNb, pygNodesNb, pyRockNb)
 
       integer :: pylNodesNb
@@ -696,6 +696,7 @@ contains
       integer :: pyRockNb
       real(kind=8),intent(in) :: dt
       real(kind=8),intent(in) :: sea
+      real(kind=8),intent(in) :: db
       real(kind=8),intent(in) :: perc_dep
       real(kind=8),intent(in) :: slp_cr
       real(kind=8),intent(in) :: sedfluxcrit
@@ -778,6 +779,8 @@ contains
             else
                tauratio = 1.
             endif
+            if( pyElev(donor)<db) tauratio = 0.
+            
             slp = dh/dist*tauratio
             ! Check if this is an alluvial plain in which case we force deposition
             if(updist(donor) > 0. .and. dist > 0. .and. slp_cr > 0.)then
