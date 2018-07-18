@@ -689,7 +689,7 @@ contains
 
   subroutine streampower(sedfluxcrit,pyStack, pyRcv, pitID, pitVol1, pitDrain, pyXY, pyArea, pyMaxH, &
       pyMaxD, pyDischarge, pyFillH, pyElev, pyRiv, Cero, actlay, perc_dep, slp_cr, sea, db, dt, &
-      borders, pyDepo, pyEro, sedFluxes, pyDensity, pylNodesNb, pygNodesNb, pyRockNb)
+      borders, pyDepo, pyEro, sedFluxes, pyDensity, pylNodesNb, pygNodesNb, pyRockNb,a_ratio,b_ratio)
 
       integer :: pylNodesNb
       integer :: pygNodesNb
@@ -700,6 +700,8 @@ contains
       real(kind=8),intent(in) :: perc_dep
       real(kind=8),intent(in) :: slp_cr
       real(kind=8),intent(in) :: sedfluxcrit
+      real(kind=8),intent(in) :: a_ratio
+      real(kind=8),intent(in) :: b_ratio
       integer,dimension(pylNodesNb),intent(in) :: pyStack
       integer,dimension(pygNodesNb),intent(in) :: pyRcv
       integer,dimension(pygNodesNb),intent(in) :: pitID
@@ -723,7 +725,7 @@ contains
       real(kind=8),dimension(pygNodesNb),intent(out) :: pyDensity
 
       integer :: n, donor, recvr, nID, tmpID, r
-      real(kind=8) :: maxh, dh, waterH, fct, Qt, totflx, totspl, newdist,rhosed,rhowat,tauratio
+      real(kind=8) :: maxh, dh, waterH, fct, Qt, totflx, totspl, newdist,rhosed,rhowat,tauratio,Cs
       real(kind=8) :: dist, slp, slpdh, updh, tmpdist, totdist, width, frac, upperslp, bedfrac
       real(kind=8),dimension(pyRockNb) :: SPL, Qs, Qb, frck, erodep, pitDep
       real(kind=8),dimension(pygNodesNb) :: upZ, updist, pitVol,hypyc
@@ -732,7 +734,7 @@ contains
       pyDepo = 0.
       pyEro = 0.
       pyDensity = 1000.
-      rhosed = 2000.
+      rhosed = 2500.
       rhowat = 1000.
       hypyc = 0.
       pitVol = pitVol1
@@ -765,7 +767,13 @@ contains
             do r=1, pyRockNb
               totflx=totflx+sedFluxes(donor,r)
             enddo
+            ! Flux density estimate (mass conservation)
             pyDensity(donor) = (totflx/pyDischarge(donor))*rhosed+(1-totflx/pyDischarge(donor))*rhowat
+            ! Flux density estimate (Syvitski et al. 2000 rating parameters)
+            if (a_ratio /=0. .and. b_ratio /=0.)then
+               Cs=a_ratio*(pyDischarge(donor)/3.14E7)**b_ratio
+               pyDensity(donor)=rhowat+Cs
+            endif
             if (pyElev(donor)<=sea ) then
                if (pyDensity(donor) >= sedfluxcrit) then
                  hypyc(donor) = 1.

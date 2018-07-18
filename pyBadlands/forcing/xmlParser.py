@@ -941,9 +941,21 @@ class xmlParser:
             else:
                 self.diffnb = 5
             element = None
-            element = spl.find('dens_cr')
+            element = spl.find('dens_crit')
             if element is not None:
                 self.denscrit = float(element.text)
+            element = None
+            element = spl.find('a_rating')
+            if element is not None:
+                self.arat = float(element.text)
+            else:
+	        self.arat=0.
+            element = None
+            element = spl.find('b_rating')
+            if element is not None:
+                self.brat = float(element.text)
+            else:
+                self.brat=0.
             element = None
             element = spl.find('deepbasin')
             if element is not None:

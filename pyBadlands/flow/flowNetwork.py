@@ -96,6 +96,8 @@ class flowNetwork:
         self.b = input.b
         self.deepb = input.deepbasin
         self.critdens = input.denscrit
+        self.a_rat = input.arat
+        self.b_rat = input.brat
         self.flowdensity = None
         self.sedload = None
         self.straTIN = 0
@@ -658,7 +660,7 @@ class flowNetwork:
 
             cdepo, cero, sedload, flowdensity = FLOWalgo.flowcompute.streampower(self.critdens, self.localstack,self.receivers,self.pitID, \
                      self.pitVolume,self.pitDrain,self.xycoords,Acell,self.maxh,self.maxdep,self.discharge,fillH, \
-                     elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,sealevel-self.deepb,newdt,self.borders)
+                     elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,self.deepb,newdt,self.borders,self.a_rat,self.b_rat)
 
             if self.depo == 0:
                 volChange = cero
@@ -696,7 +698,7 @@ class flowNetwork:
             if newdt < dt:
                 cdepo, cero, sedload, flowdensity = FLOWalgo.flowcompute.streampower(self.critdens, self.localstack,self.receivers,self.pitID, \
                         self.pitVolume,self.pitDrain,self.xycoords,Acell,self.maxh,self.maxdep,self.discharge,fillH, \
-                        elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,sealevel-self.deepb,newdt,self.borders)
+                        elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,self.deepb,newdt,self.borders,self.a_rat,self.b_rat)
                 volChange = cdepo+cero
                 if verbose:
                     print "   - Compute volumetric fluxes with updated dt ", time.clock() - time1
@@ -735,6 +737,8 @@ class flowNetwork:
                 deposition = numpy.zeros(depo.shape)
 
                 # Compute alluvial plain deposition
+                #plainid,landid,seaid,perc,nplain,nland,nsea,ndepo = FLOWalgo.flowcompute.getids(fillH,elev,depo,
+                #                                                    self.pitVolume,self.deepb)
                 plainid,landid,seaid,perc,nplain,nland,nsea,ndepo = FLOWalgo.flowcompute.getids(fillH,elev,depo,
                                                                     self.pitVolume,sealevel)
                 depo = ndepo

@@ -239,10 +239,16 @@
         <diffprop>0.2</diffprop>
         <!-- Critical density of water+sediment flux to trigger hyperpycnal current
              off shore - (optional) -->
-        <dens_cr>1060.</dens_cr>
+        <dens_crit>1060.</dens_crit>
         <!-- Deep basin depth under which hyperpycnal flow are forced to
              deposit [m] - (optional) -->
         <deepbasin>-2500.</deepbasin>
+        <!-- a and b rating parameters according to Syvitski et al. 2000, that define
+	     sediment load as a function of discharge such as C_sed=a.Disch**b
+             If not precised or set to zero, the flow density is computed from sediment load
+             and water discharge according to mass conservation rules. -->
+        <a_rating>0.</a_rating>
+        <b_rating>0.</b_rating>
     </sp_law>
 
     <!-- Flux-dependent function structure  (optional)
