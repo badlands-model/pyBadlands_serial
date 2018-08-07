@@ -658,7 +658,7 @@ class flowNetwork:
 
             cdepo, cero, sedload, flowdensity = FLOWalgo.flowcompute.streampower(self.critdens, self.localstack,self.receivers,self.pitID, \
                      self.pitVolume,self.pitDrain,self.xycoords,Acell,self.maxh,self.maxdep,self.discharge,fillH, \
-                     elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,sealevel-self.deepb,newdt,self.borders)
+                     elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,sealevel+self.deepb,newdt,self.borders)
 
             if self.depo == 0:
                 volChange = cero
@@ -696,7 +696,7 @@ class flowNetwork:
             if newdt < dt:
                 cdepo, cero, sedload, flowdensity = FLOWalgo.flowcompute.streampower(self.critdens, self.localstack,self.receivers,self.pitID, \
                         self.pitVolume,self.pitDrain,self.xycoords,Acell,self.maxh,self.maxdep,self.discharge,fillH, \
-                        elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,sealevel-self.deepb,newdt,self.borders)
+                        elev,rivqs,eroCoeff,actlay,perc_dep,slp_cr,sealevel,sealevel+self.deepb,newdt,self.borders)
                 volChange = cdepo+cero
                 if verbose:
                     print "   - Compute volumetric fluxes with updated dt ", time.clock() - time1

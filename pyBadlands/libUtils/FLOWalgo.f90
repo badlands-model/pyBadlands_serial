@@ -780,7 +780,7 @@ contains
                tauratio = 1.
             endif
             if( pyElev(donor)<db) tauratio = 0.
-            
+
             slp = dh/dist*tauratio
             ! Check if this is an alluvial plain in which case we force deposition
             if(updist(donor) > 0. .and. dist > 0. .and. slp_cr > 0.)then
@@ -844,6 +844,10 @@ contains
                     SPL = SPL*frac
                     totspl = -dh
                   endif
+                endif
+                if(pyElev(donor)<db)then
+                  SPL = 0.
+                  totspl = 0.
                 endif
 
               ! Generalised undercapacity model (linear sedflux dependency)
