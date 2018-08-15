@@ -504,7 +504,7 @@ class Model(object):
         # Update next stratal layer time
         if self.tNow >= self.force.next_layer:
             self.force.next_layer += self.input.laytime
-            subs = self.strata.buildStrata(self.elevation, self.cumdiff, self.force.sealevel,
+            sub = self.strata.buildStrata(self.elevation, self.cumdiff, self.force.sealevel,
                                     self.recGrid.boundsPt,1, self.outputStep-1)
             self.elevation += sub
             self.cumdiff += sub
