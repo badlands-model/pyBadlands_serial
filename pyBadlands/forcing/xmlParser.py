@@ -106,7 +106,7 @@ class xmlParser:
         self.diffnb = 5
         self.diffprop = 0.9
         self.spl = False
-        self.deepbasin = 10000.
+        self.deepbasin = -10000.
         self.denscrit = 20000.
 
         self.incisiontype = 0
