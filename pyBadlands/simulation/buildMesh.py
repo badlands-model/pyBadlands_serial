@@ -101,11 +101,12 @@ def construct_mesh(input, filename, verbose=False):
         elevation, cumdiff, cumhill, cumfail, inIDs, parentIDs = _define_TINparams(totPts, input, FVmesh, recGrid, verbose)
 
     # Build stratigraphic and erodibility meshes
-    if input.laytime > 0 and input.erolays >= 0:
+    if ((input.laytime and input.laytime > 0) and
+       (input.erolays and input.erolays >= 0)):
         strata, mapero = _build_strateroMesh(input, FVmesh, recGrid, cumdiff, verbose)
-    elif input.laytime > 0:
+    elif (input.laytime and input.laytime > 0):
         strata = _build_strateroMesh(input, FVmesh, recGrid, cumdiff, verbose)
-    elif input.erolays >= 0:
+    elif (input.erolays and input.erolays >= 0):
         mapero = _build_strateroMesh(input, FVmesh, recGrid, cumdiff, verbose)
 
     # Set default to no rain
@@ -319,7 +320,7 @@ def _build_strateroMesh(input, FVmesh, recGrid, cumdiff, verbose=False):
             print(" - create stratigraphic regions ", time.clock() - walltime)
 
     # Define pre-existing erodibility maps
-    if input.erolays >= 0:
+    if input.erolays and input.erolays >= 0:
 
         walltime = time.clock()
         bPts = recGrid.boundsPt
@@ -337,9 +338,10 @@ def _build_strateroMesh(input, FVmesh, recGrid, cumdiff, verbose=False):
         if verbose:
             print(" - create erodibility mesh ", time.clock() - walltime)
 
-    if input.laytime > 0 and input.erolays >= 0:
+    if ((input.laytime and input.laytime > 0) and
+       (input.erolays and input.erolays >= 0)):
         return strata, mapero
-    elif input.laytime > 0:
+    elif (input.laytime and input.laytime > 0):
         return strata
     else:
         return mapero
