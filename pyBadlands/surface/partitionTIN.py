@@ -257,6 +257,6 @@ def overlap(X, Y, nbprocX, nbprocY, overlapLen, verbose=False):
     localTIN = triangle.triangulate(dict(vertices=data[globIDs,:2]),' ')
 
     if verbose:
-        print " - partition TIN including shadow zones ", time.clock() - walltime
+        print(" - partition TIN including shadow zones ", time.clock() - walltime)
 
     return globIDs, localTIN

@@ -203,7 +203,7 @@ class strataMesh():
         shape = (l1-l0, self.step+1)
 
         if verbose:
-            print " - move stratal mesh ", time.clock() - walltime
+            print(" - move stratal mesh ", time.clock() - walltime)
 
         walltime = time.clock()
         deformXY = moveXY
@@ -211,18 +211,18 @@ class strataMesh():
         deformPoro = self.stratPoro[:,:self.step+1]
         deformElev = self.stratElev[:,:self.step+1]
         if verbose:
-            print " - create deformed stratal mesh arrays ", time.clock() - walltime
+            print(" - create deformed stratal mesh arrays ", time.clock() - walltime)
 
         # Build the kd-tree
         walltime = time.clock()
         deformtree = cKDTree(deformXY)
         if verbose:
-            print " - create deformed stratal mesh kd-tree ", time.clock() - walltime
+            print(" - create deformed stratal mesh kd-tree ", time.clock() - walltime)
 
         walltime = time.clock()
         distances, indices = deformtree.query(self.xyi, k=4)
         if verbose:
-            print " - query stratal mesh kd-tree ", time.clock() - walltime
+            print(" - query stratal mesh kd-tree ", time.clock() - walltime)
 
         # Compute inverse weighting distance
         walltime = time.clock()
@@ -256,10 +256,10 @@ class strataMesh():
         tmpID = numpy.where(numpy.amax(self.stratThick[:,:self.step+1], axis=1)>0)[0]
         self.stratIn[tmpID] = 1
         if verbose:
-            print " - perform stratal mesh interpolation ", time.clock() - walltime
+            print(" - perform stratal mesh interpolation ", time.clock() - walltime)
 
         if verbose:
-            print " - moving stratal mesh function ", time.clock() - st_time
+            print(" - moving stratal mesh function ", time.clock() - st_time)
 
         self.oldload = numpy.copy(cumdiff)
 
