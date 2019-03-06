@@ -164,7 +164,7 @@ def sediment_flux(input, recGrid, hillslope, FVmesh, tMesh, flow, force, rain, l
         print(" -   Get CFL time step ", time.clock() - walltime)
 
     # Compute sediment fluxes
-    if input.erolays >= 0:
+    if (input.erolays and input.erolays >= 0):
         oldelev = np.copy(elevation)
 
     # Initial cumulative elevation change
@@ -331,7 +331,7 @@ def sediment_flux(input, recGrid, hillslope, FVmesh, tMesh, flow, force, rain, l
         print(" -   Get hillslope fluxes ", time.clock() - walltime)
 
     # Update erodibility values
-    if input.erolays >= 0:
+    if (input.erolays and input.erolays >= 0):
         mapero.getErodibility(elevation-oldelev)
         flow.erodibility = mapero.erodibility
 
