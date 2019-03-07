@@ -700,7 +700,7 @@ class forceSim:
 
         # Delete outside domain points if any
         if len(tID) > 0:
-            self.tXY = numpy.delete(self.tXY, tID, 0)
+            self.tXY = numpy.delete(tXY, tID, 0)
             elev = numpy.delete(telev, tID, 0)
             cum = numpy.delete(tcum, tID, 0)
             hum = numpy.delete(hcum, tID, 0)
@@ -719,7 +719,7 @@ class forceSim:
                     mKe[:,k] = numpy.delete(Ke[:,k], tID, 0)
                     mTe[:,k] = numpy.delete(Te[:,k], tID, 0)
         else:
-            self.tXY = tXY
+            self.tXY = numpy.copy(tXY)
             elev = telev
             cum = tcum
             hum = hcum
@@ -738,6 +738,7 @@ class forceSim:
         # Create KDTree with deformed points and find points which needs to be merged
         tree = cKDTree(self.tXY)
         pairs = tree.query_pairs(self.merge3d)
+
         # For points which require merging define a new point and
         # interpolate parameters based on merged points
         if len(pairs) > 0:
