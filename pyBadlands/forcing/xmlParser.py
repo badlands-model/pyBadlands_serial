@@ -46,6 +46,7 @@ class xmlParser:
         self.Afactor = 1
         self.nopit = 0
         self.udw = 0
+        self.searef = None
         self.poro0 = 0.
         self.poroC = 0.47
 
@@ -275,6 +276,12 @@ class xmlParser:
                     self.udw = 1
             else:
                 self.udw = 0
+            element = None
+            element = grid.find('searef')
+            if element is not None:
+                self.searef = eval(element.text)
+                if not isinstance(self.searef, tuple):
+                    raise ValueError("""searef must be a python tuple (x,y)""")
         else:
             raise ValueError('Error in the XmL file: grid structure definition is required!')
 

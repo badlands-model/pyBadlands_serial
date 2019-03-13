@@ -15,6 +15,7 @@ import numpy as np
 
 from pyBadlands import (partitionTIN, FVmethod, elevationTIN, raster2TIN, waveSed,  #oceanDyn
                         eroMesh, strataMesh, isoFlex, stratiWedge, carbMesh, forceSim)
+from scipy.interpolate import griddata
 
 def construct_mesh(input, filename, verbose=False):
     """
@@ -118,7 +119,8 @@ def construct_mesh(input, filename, verbose=False):
 
     # Wavesed grid initialisation
     if input.waveSed:
-        wave = _init_wavesed(input,elevation[0], recGrid, force, verbose)
+        ref_elev = _get_reference_elevation(input,recGrid,elevation)
+        wave = _init_wavesed(input,ref_elev, recGrid, force, verbose)
         wave.build_tree(FVmesh.node_coords[:,:2])
 
     # Stratigraphic TIN initialisation
@@ -373,7 +375,8 @@ def _init_flexure(FVmesh, input, recGrid, force, elevation, cumdiff,
                 elasticT, elasticT2, input.flexbounds, FVmesh.node_coords[:,:2], input.ftime)
 
     tinFlex = np.zeros(totPts, dtype=float)
-    force.getSea(input.tStart,input.udw,elevation[0])
+    ref_elev = _get_reference_elevation(input,recGrid,elevation)
+    force.getSea(input.tStart,input.udw,ref_elev)
     tinFlex = flex.get_flexure(elevation, cumdiff, force.sealevel,
                                recGrid.boundsPt, initFlex=True)
     tinFlex = force.disp_border(tinFlex, FVmesh.neighbours, FVmesh.edge_length, recGrid.boundsPt)
@@ -398,3 +401,16 @@ def _init_wavesed(input, z0,recGrid, force, verbose=False):
         print "   - Initialise wavesed grid ", time.clock() - walltime
 
     return wave
+
+
+def _get_reference_elevation(input, recGrid, elevation):
+
+    if input.searef:
+        x_ref, y_ref = input.searef
+        pts = recGrid.tinMesh["vertices"]
+        ref_elev = griddata(points=pts, values=elevation, xi=[x,y], method="nearest")
+    else:
+        ref_elev = elevation[0]
+    return ref_elev
+
+

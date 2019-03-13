@@ -257,7 +257,8 @@ class Model(object):
             # Load precipitation rate
             if self.force.next_rain <= self.tNow and self.force.next_rain < self.input.tEnd:
                 if self.tNow == self.input.tStart:
-                    self.force.getSea(self.tNow,self.input.udw,self.elevation[0])
+                    ref_elev = buildMesh._get_reference_elevation(self.input, self.recGrid, self.elevation)
+                    self.force.getSea(self.tNow,self.input.udw,ref_elev)
                 self.rain = np.zeros(self.totPts, dtype=float)
                 self.rain[self.inIDs] = self.force.get_Rain(self.tNow, self.elevation, self.inIDs)
 
@@ -333,7 +334,8 @@ class Model(object):
             # Compute isostatic flexure
             if self.tNow >= self.force.next_flexure:
                 flextime = time.clock()
-                self.force.getSea(self.tNow,self.input.udw,self.elevation[0])
+                ref_elev = buildMesh._get_reference_elevation(self.input, self.recGrid, self.elevation)
+                self.force.getSea(self.tNow,self.input.udw,ref_elev)
                 self.tinFlex = self.flex.get_flexure(self.elevation, self.cumdiff,
                             self.force.sealevel,self.recGrid.boundsPt, initFlex=False)
                 # Get border values
@@ -474,7 +476,8 @@ class Model(object):
         # Isostatic flexure
         if self.input.flexure:
             flextime = time.clock()
-            self.force.getSea(self.tNow,self.input.udw,self.elevation[0])
+            ref_elev = buildMesh._get_reference_elevation(self.input, self.recGrid, self.elevation)
+            self.force.getSea(self.tNow,self.input.udw,ref_elev)
             self.tinFlex = self.flex.get_flexure(self.elevation, self.cumdiff,
                         self.force.sealevel,self.recGrid.boundsPt,initFlex=False)
             # Get border values
