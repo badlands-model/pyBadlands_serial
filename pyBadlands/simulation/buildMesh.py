@@ -408,7 +408,7 @@ def _get_reference_elevation(input, recGrid, elevation):
     if input.searef:
         x_ref, y_ref = input.searef
         pts = recGrid.tinMesh["vertices"]
-        ref_elev = griddata(points=pts, values=elevation, xi=[x,y], method="nearest")
+        ref_elev = griddata(points=pts, values=elevation, xi=[x_ref, y_ref], method="nearest")
     else:
         ref_elev = elevation[0]
     return ref_elev
