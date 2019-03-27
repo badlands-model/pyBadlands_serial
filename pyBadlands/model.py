@@ -48,8 +48,7 @@ class Model(object):
         np.seterr(divide='ignore',invalid='ignore')
 
         # Only the first node should create a unique output dir
-        rank = 0
-        self.input = xmlParser.xmlParser(filename, makeUniqueOutputDir=(rank == 0))
+        self.input = xmlParser.xmlParser(filename, makeUniqueOutputDir=False)
         self.tNow = self.input.tStart
 
         # Seed the random number generator consistently on all nodes
