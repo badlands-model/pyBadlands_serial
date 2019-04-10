@@ -1310,10 +1310,10 @@ class xmlParser:
             if os.path.exists(self.outDir):
                 self.outDir += '_'+str(len(glob.glob(self.outDir+str('*')))-1)
 
-            os.makedirs(self.outDir)
-            os.makedirs(self.outDir+'/h5')
-            os.makedirs(self.outDir+'/xmf')
-            shutil.copy(self.inputfile,self.outDir)
+        os.makedirs(self.outDir)
+        os.makedirs(self.outDir+'/h5')
+        os.makedirs(self.outDir+'/xmf')
+        shutil.copy(self.inputfile,self.outDir)
 
         # Extract global wave field parameters
         wavefield = None
