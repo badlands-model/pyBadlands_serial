@@ -14,6 +14,7 @@ import sys
 import time
 import numpy as np
 from matplotlib import path
+from buildMesh import _get_reference_elevation
 
 from pyBadlands import (elevationTIN)
 
@@ -25,7 +26,8 @@ def streamflow(input, FVmesh, recGrid, force, hillslope, flow, elevation, \
 
     # Update sea-level
     walltime = time.clock()
-    force.getSea(tNow,input.udw,elevation[0])
+    ref_elev = _get_reference_elevation(input, recGrid, elevation)
+    force.getSea(tNow,input.udw,ref_elev)
     fillH = None
 
     # Update river input
