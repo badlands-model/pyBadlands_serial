@@ -211,7 +211,7 @@ class stratiWedge():
         self.alayR = PDalgo.pdstack.getactlay(actlay, self.layerThick[:,:self.step+1],
                                     self.depoThick[:,:self.step+1,:])
         if verbose:
-            print "   - Get active layer composition ", time.clock() - time0
+            print("   - Get active layer composition ", time.clock() - time0)
             time0 = time.clock()
 
         return
@@ -238,7 +238,7 @@ class stratiWedge():
         self.paleoDepth[:,self.step] = elev
 
         if verbose:
-            print "   - Update erosion/deposition ", time.clock() - time0
+            print("   - Update erosion/deposition ", time.clock() - time0)
 
         return
 

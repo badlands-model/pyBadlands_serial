@@ -25,7 +25,7 @@ def write_checkpoints(input, recGrid, lGIDs, inIDs, tNow, FVmesh, \
 
     deepb = input.deepbasin
 
-    if input.erolays >= 0:
+    if (input.erolays and input.erolays >= 0):
         eroOn = True
     else:
         eroOn = False
@@ -123,8 +123,8 @@ def write_checkpoints(input, recGrid, lGIDs, inIDs, tNow, FVmesh, \
     visualiseFlow.write_xmf(input.outDir, input.fxmffile, input.fxdmffile, step, tNow,
                             fline, fnodes, input.fh5file)
 
-    print "   - Writing outputs (%0.02f seconds; tNow = %s)" % (time.clock() - out_time, tNow)
+    print("   - Writing outputs (%0.02f seconds; tNow = %s)" % (time.clock() - out_time, tNow))
 
     # Record erodibility maps
-    if input.erolays >= 0:
+    if (input.erolays and input.erolays >= 0):
         mapero.write_hdf5_erolay(step)

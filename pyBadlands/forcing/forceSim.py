@@ -547,7 +547,7 @@ class forceSim:
         if not (time >= self.T_disp[event,0]) and not (time < self.T_disp[event,1]):
             raise ValueError('Problem finding the 3D displacements map to load!')
 
-        if self.time3d > 0.:
+        if self.time3d and (self.time3d > 0.):
             if time + self.time3d > self.T_disp[event,1]:
                 self.next_disp = self.T_disp[event,1]
             else:

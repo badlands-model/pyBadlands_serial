@@ -20,7 +20,7 @@ from scipy.ndimage.filters import gaussian_filter
 from scipy import interpolate
 from scipy.spatial import cKDTree
 from collections import OrderedDict
-from matplotlib import _cntr as cntr
+from legacycontour import _cntr as cntr
 
 class carbGrowth:
     """
@@ -324,7 +324,7 @@ class carbGrowth:
             unique = OrderedDict()
             for p in zip(tmpts[:,0], tmpts[:,1]):
                 unique.setdefault(p[:2], p)
-            pts = numpy.asarray(unique.values())
+            pts = numpy.asarray(list(unique.values()))
 
             if closed:
                 cpts = numpy.zeros((len(pts)+1,2), order='F')
