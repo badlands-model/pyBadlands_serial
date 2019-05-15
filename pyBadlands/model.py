@@ -48,7 +48,7 @@ class Model(object):
         np.seterr(divide='ignore',invalid='ignore')
 
         # Only the first node should create a unique output dir
-        self.input = xmlParser.xmlParser(filename, makeUniqueOutputDir=False)
+        self.input = xmlParser.xmlParser(filename, makeUniqueOutputDir=True)
         self.tNow = self.input.tStart
 
         # Seed the random number generator consistently on all nodes
@@ -345,7 +345,7 @@ class Model(object):
                 self.cumflex += self.tinFlex
                 # Update next flexure time
                 self.force.next_flexure += self.input.ftime
-                print("   - Compute flexural isostasy ", time.clock() - flextime)
+                print("   - Compute flexural isostasy %0.02f seconds" % (time.clock() - flextime))
 
             # Compute wavesed parameters
             if self.tNow >= self.force.next_wave:
@@ -364,7 +364,7 @@ class Model(object):
                 self.elevation += waveED
                 self.cumdiff  += waveED
                 self.wavediff  += waveED
-                print("   - Compute wave-induced sediment transport ", time.clock() - wavetime)
+                print("   - Compute wave-induced sediment transport %0.02f seconds" % (time.clock() - wavetime))
                 # Update carbonate active layer
                 if nactlay is not None:
                     self.carbTIN.update_active_layer(nactlay,self.elevation)
@@ -416,7 +416,7 @@ class Model(object):
                 # Update current cumulative erosion deposition
                 self.oldsed = np.copy(self.cumdiff)
                 self.force.next_carb += self.input.tCarb
-                print("   - Compute carbonate growth ", time.clock() - carbtime)
+                print("   - Compute carbonate growth %0.02f seconds" % (time.clock() - carbtime))
 
             # Compute stream network
             self.fillH, self.elevation = buildFlux.streamflow(self.input, self.FVmesh, self.recGrid, self.force, self.hillslope, \
@@ -434,12 +434,12 @@ class Model(object):
                 if self.straTIN is not None and self.outputStep % self.input.tmesh==0:
                     meshtime = time.clock()
                     self.straTIN.write_hdf5_stratigraphy(self.lGIDs,self.outputStep)
-                    print("   - Write sediment mesh output", time.clock() - meshtime)
+                    print("   - Write sediment mesh output %0.02f seconds" % (time.clock() - meshtime))
 
                 if self.carbTIN is not None and self.outputStep % self.input.tmesh==0:
                     meshtime = time.clock()
                     self.carbTIN.write_hdf5_stratigraphy(self.lGIDs,self.outputStep)
-                    print("   - Write carbonate mesh output", time.clock() - meshtime)
+                    print("   - Write carbonate mesh output %0.02f seconds" % (time.clock() - meshtime))
 
                 # Update next display time
                 last_output = time.clock()
@@ -487,7 +487,7 @@ class Model(object):
             self.cumflex += self.tinFlex
             # Update next flexure time
             self.force.next_flexure += self.input.ftime
-            print("   - Compute flexural isostasy ", time.clock() - flextime)
+            print("   - Compute flexural isostasy %0.02f seconds" % (time.clock() - flextime))
 
         # Create checkpoint files and write HDF5 output
         if self.input.udw == 0 or self.tNow == self.input.tEnd or self.tNow == self.force.next_display:

@@ -486,21 +486,20 @@ class strataMesh():
         # Clear points with no stratigraphic layer
         tmpIDs = numpy.where(self.stratIn == 0)[0]
         #surf = numpy.tile(topsurf[tmpIDs].transpose(), (1, self.step+1)).reshape(self.step+1,len(tmpIDs)).transpose()
-        surf = numpy.array([topsurf[tmpIDs],]*int(self.step+1)).transpose()
-        self.stratDepth[tmpIDs,:self.step+1] = surf
-        self.stratThick[tmpIDs,:self.step+1] = 0.
-
+        surf = numpy.array([topsurf[tmpIDs],]*int(self.step+2)).transpose()
+        self.stratDepth[tmpIDs,:self.step+2] = surf
+        self.stratThick[tmpIDs,:self.step+2] = 0.
         # Find points with stratigraphic layers
         tmpIDs = numpy.where(self.stratIn == 1)[0]
         if len(tmpIDs) == 0:
             return
 
         # Compute cumulative stratal thicknesses
-        cumThick = numpy.cumsum(self.stratThick[tmpIDs,self.step::-1],axis=1)[:,::-1]
+        cumThick = numpy.cumsum(self.stratThick[tmpIDs,self.step+1::-1],axis=1)[:,::-1]
 
         # Updata stratal depth
-        surf = numpy.array([topsurf[tmpIDs],]*int(self.step+1)).transpose()
-        self.stratDepth[tmpIDs,:self.step+1] = surf - cumThick
+        surf = numpy.array([topsurf[tmpIDs],]*int(self.step+2)).transpose()
+        self.stratDepth[tmpIDs,:self.step+2] = surf - cumThick
 
         return
 
@@ -521,17 +520,17 @@ class strataMesh():
             f["coords"][:,:2] = self.xyi[self.ids]
 
             # Write stratal layers depth per cells
-            f.create_dataset('layDepth',shape=(self.ptsNb,self.step+1), dtype='float32', compression='gzip')
-            f["layDepth"][:,:self.step+1] = self.stratDepth[self.ids,:self.step+1]
+            f.create_dataset('layDepth',shape=(self.ptsNb,self.step+2), dtype='float32', compression='gzip')
+            f["layDepth"][:,:self.step+2] = self.stratDepth[self.ids,:self.step+2]
 
             # Write stratal layers elevations per cells
-            f.create_dataset('layElev',shape=(self.ptsNb,self.step+1), dtype='float32', compression='gzip')
-            f["layElev"][:,:self.step+1] = self.stratElev[self.ids,:self.step+1]
+            f.create_dataset('layElev',shape=(self.ptsNb,self.step+2), dtype='float32', compression='gzip')
+            f["layElev"][:,:self.step+2] = self.stratElev[self.ids,:self.step+2]
 
             # Write stratal layers thicknesses per cells
-            f.create_dataset('layThick',shape=(self.ptsNb,self.step+1), dtype='float32', compression='gzip')
-            f["layThick"][:,:self.step+1] = self.stratThick[self.ids,:self.step+1]
+            f.create_dataset('layThick',shape=(self.ptsNb,self.step+2), dtype='float32', compression='gzip')
+            f["layThick"][:,:self.step+2] = self.stratThick[self.ids,:self.step+2]
 
             # Write stratal layers porosity per cells
-            f.create_dataset('layPoro',shape=(self.ptsNb,self.step+1), dtype='float32', compression='gzip')
-            f["layPoro"][:,:self.step+1] = self.stratPoro[self.ids,:self.step+1]
+            f.create_dataset('layPoro',shape=(self.ptsNb,self.step+2), dtype='float32', compression='gzip')
+            f["layPoro"][:,:self.step+2] = self.stratPoro[self.ids,:self.step+2]
