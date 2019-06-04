@@ -407,6 +407,7 @@ class Model(object):
                 # Update proportion based on top layer
                 if self.prop is not None:
                     ids = np.where(self.carbTIN.layerThick[:,self.carbTIN.step]>0.)[0]
+                    self.prop.fill(0.)
                     self.prop[ids,0] = self.carbTIN.depoThick[ids,self.carbTIN.step,0]/self.carbTIN.layerThick[ids,self.carbTIN.step]
                     if self.input.carbonate:
                         self.prop[ids,1] = self.carbTIN.depoThick[ids,self.carbTIN.step,1]/self.carbTIN.layerThick[ids,self.carbTIN.step]

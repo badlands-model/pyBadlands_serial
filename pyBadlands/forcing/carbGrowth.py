@@ -450,12 +450,12 @@ class carbGrowth:
         # Average growth function limitation
         val = self.growth*growth*dt
         val[val<0.] = 0.
-        val[seaIds] = numpy.minimum(val[seaIds],-depthfield[seaIds]*0.98)
+        val[seaIds] = numpy.minimum(val[seaIds],-depthfield[seaIds]*0.9)
         tmpid = numpy.where(numpy.logical_and(val==val.max(),val>0))[0]
         if self.growth2 > 0.:
             val2 = self.growth2*growth2*dt
             val2[val2<0.] = 0.
-            val2[seaIds] = numpy.minimum(val2[seaIds],-depthfield[seaIds]*0.98)
+            val2[seaIds] = numpy.minimum(val2[seaIds],-depthfield[seaIds]*0.9)
         else:
             val2 = None
 

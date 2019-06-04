@@ -1606,7 +1606,7 @@ class xmlParser:
                     raise ValueError('Basement map file for species1 growth is missing or the given path is incorrect.')
             element = carbp.find('tcarb')
             if element is not None:
-                self.tCarb = element.text
+                self.tCarb = float(element.text)
                 if Decimal(self.tEnd - self.tStart) % Decimal(self.tCarb) != 0.:
                     raise ValueError('Error in the definition of the simulation time: carbonate interval needs to be a multiple of simulation time.')
             else:
@@ -1617,7 +1617,6 @@ class xmlParser:
                 self.tCarb = self.tWave
             else:
                 self.tWave = self.tCarb
-
         # Species 1 class
         carb = None
         carb = root.find('species1')
