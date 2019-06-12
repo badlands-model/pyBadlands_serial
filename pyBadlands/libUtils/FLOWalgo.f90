@@ -765,7 +765,7 @@ contains
             do r=1, pyRockNb
               totflx=totflx+sedFluxes(donor,r)
             enddo
-            pyDensity(donor) = (totflx/pyDischarge(donor))*rhosed+(1-totflx/pyDischarge(donor))*rhowat
+            pyDensity(donor) = (totflx/(dt*pyDischarge(donor)))*rhosed+(1-totflx/(dt*pyDischarge(donor)))*rhowat
             if (pyElev(donor)<=sea ) then
                if (pyDensity(donor) >= sedfluxcrit) then
                  hypyc(donor) = 1.

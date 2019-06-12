@@ -1617,6 +1617,7 @@ class xmlParser:
                 self.tCarb = self.tWave
             else:
                 self.tWave = self.tCarb
+                self.maxDT = self.tCarb
         # Species 1 class
         carb = None
         carb = root.find('species1')
