@@ -83,7 +83,7 @@
         <diffprop>0.0001</diffprop>
         <!-- Critical density of water+sediment flux to trigger hyperpycnal current
              off shore - (optional) -->
-        <dens_cr>1060.</dens_cr>
+        <dens_cr>1000.01</dens_cr>
         <!-- Deep basin depth under which hyperpycnal flow are forced to 
              deposit [m] - (optional) -->
         <deepbasin>-1500.</deepbasin>
