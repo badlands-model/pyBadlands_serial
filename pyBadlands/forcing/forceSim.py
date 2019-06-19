@@ -115,7 +115,8 @@ class forceSim:
                  orographic = None, orographiclin = None, rbgd = None, rmin = None, rmax = None, rzmax = None,
                  windx = None, windy = None, tauc = None, tauf = None, nm = None, cw = None, hw = None,
                  ortime = None, MapDisp = None, TimeDisp = None, regX = None, regY = None, rivPos = None,
-                 rivTime = None, rivQws = None, riverRck=None, rivNb = 0, rockNb = 0, Tdisplay = 0.):
+                 rivTime = None, rivQws = None, riverRck=None, rivNb = 0, rockNb = 0, Tdisplay = 0.,
+                 carbValSp1 = None, carbValSp2 = None, TimeCarb = None):
 
         self.regX = regX
         self.regY = regY
@@ -187,6 +188,10 @@ class forceSim:
         self.meanV = None
         self.meanS = None
         self.wavPerc = None
+
+        self.carbValSp1 = carbValSp1
+        self.carbValSp2 = carbValSp2
+        self.T_carb = TimeCarb
 
         if self.seafile != None:
             self._build_Sea_function()
@@ -303,6 +308,42 @@ class forceSim:
         self.tXY = tXY
         self.tree = cKDTree(self.tXY)
         self.dx = self.tXY[1,0] - self.tXY[0,0]
+
+    def get_carbGrowth(self, time, inIDs):
+
+        """
+        Get carbonate growth value for a given period and perform interpolation from regular grid to unstructured TIN one.
+
+        Parameters
+        ----------
+        time : float
+            Requested time interval rain map to load.
+
+        elev : float
+            Unstructured grid (TIN) Z coordinates.
+
+        inDs : integer
+            List of unstructured vertices contained in each partition.
+
+        Returns
+        -------
+        tinCarbSp1, tinCarbSp2
+            Numpy arrays containing the updated carbonate
+            growth rates for the local domain.
+        """
+
+        events = numpy.where( (self.T_carb[:,1] - time) <= 0)[0]
+        event = len(events)
+
+        if not (time >= self.T_carb[event,0]) and not (time < self.T_carb[event,1]):
+            raise ValueError('Problem finding the carbonate events!')
+
+        tinCarbSp1 = self.carbValSp1[event]
+        tinCarbSp2 = self.carbValSp2[event]
+
+        self.next_carb = self.T_carb[event,1]
+
+        return tinCarbSp1, tinCarbSp2
 
     def get_Rain(self, time, elev, inIDs):
         """
